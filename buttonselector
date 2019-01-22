@@ -1,113 +1,150 @@
 #!/bin/sh
-buttonselector() {
+buttonseletor() {
 	buttons=$(cat /dev/input/by-path/platform-twi.1-event-joystick | hexdump -v -e '1/1 "%02x"' -n 32)
+	ctrl_db="/var/lib/hakchi/rootfs/gamecontrollerdb.txt"
 	case "${buttons:20:4}" in
 	3001)
-		echo "b1" >>/tmp/test
+		btn="b1"
 		;;
 	3101)
-		echo "b0" >>/tmp/test
+		btn="b0"
 		;;
 	3301)
-		echo "b2" >>/tmp/test
+		btn="b2"
 		;;
 	3401)
-		echo "b3" >>/tmp/test
+		btn="b3"
 		;;
 	c202)
-		echo "b13" >>/tmp/test
+		btn="b13"
 		;;
 	c302)
-		echo "b14" >>/tmp/test
+		btn="b14"
 		;;
 	c002)
-		echo "b11" >>/tmp/test
+		btn="b11"
 		;;
 	c102)
-		echo "b12" >>/tmp/test
-		;;
-	
-	3a01)
-		echo "b8" >>/tmp/test
-		;;
-	3b01)
-		echo "b9" >>/tmp/test
-		;;
-	3c01)
-		echo "b10" >>/tmp/test
+		btn="b12"
 		;;
 	0200)
-		echo "b4" >>/tmp/test
+		btn="b4"
 		;;
 	3601)
-		echo "a2" >>/tmp/test
+		btn="a2"
 		;;
 	3801)
-		echo "b6" >>/tmp/test
+		btn="b7"
 		;;
 	0500)
-		echo "b5" >>/tmp/test
+		btn="b5"
 		;;
 	3701)
-		echo "a5" >>/tmp/test
+		btn="a5"
 		;;
 	3901)
-		echo "b7" >>/tmp/test
+		btn="b7"
+		;;
+	3a01)
+		btn="b9"
+		;;
+	3b01)
+		btn="b9"
+		;;
+	3c01)
+		btn="b10"
 		;;
 	0000)
-		echo "a0" >>/tmp/test
+		btn="a0"
 		;;
 	0100)
-		echo "a1" >>/tmp/test
+		btn="a1"
 		;;
 	0300)
-		echo "a3" >>/tmp/test
+		btn="a3"
 		;;
 	0400)
-		echo "a4" >>/tmp/test
+		btn="a4"
 		;;
 	esac
 }
-[ -f "/tmp/test" ] && rm -f "/tmp/test"
-echo "Press A"
-buttonselector
-echo "Press B"
-buttonselector
-echo "Press X"
-buttonselector
-echo "Press Y"
-buttonselector
-echo "Press D-Pad Up"
-buttonselector
-echo "Press D-Pad Down"
-buttonselector
-echo "Press D-Pad Left"
-buttonselector
-echo "Press D-Pad Right"
-buttonselector
-echo "Press Select"
-buttonselector
-echo "Press Start"
-buttonselector
-echo "Press Home"
-buttonselector
-echo "Press L1 Soft"
-buttonselector
-echo "Press L1"
-buttonselector
-echo "Press L2"
-buttonselector
-echo "Press R1 Soft"
-buttonselector
-echo "Press R1"
-buttonselector
-echo "Press R2"
-buttonselector
-echo "Press Left Analog X"
-buttonselector
-echo "Press Left Analog Y"
-buttonselector
-echo "Press Right Analog X"
-buttonselector
-echo "Press Right Analog Y"
-buttonselector
+
+echo "press UP"
+buttonseletor
+sed -r -i "s/UP/${btn}/g;" $ctrl_db
+echo "press DOWN"
+buttonseletor
+sed -r -i "s/DOWN/${btn}/g;" $ctrl_db
+echo "press LEFT"
+buttonseletor
+sed -r -i "s/LEFT/${btn}/g;" $ctrl_db
+echo "press RIGHT"
+buttonseletor
+sed -r -i "s/RIGHT/${btn}/g;" $ctrl_db
+echo "press A"
+buttonseletor
+ok="$btn"
+sed -r -i "s/CIRCLE/${btn}/g;" $ctrl_db
+echo "press B"
+buttonseletor
+sed -r -i "s/EXE/${btn}/g;" $ctrl_db
+echo "press X"
+buttonseletor
+sed -r -i "s/TRIANGLE/${btn}/g;" $ctrl_db
+echo "press Y"
+buttonseletor
+sed -r -i "s/SQUARE/${btn}/g;" $ctrl_db
+echo "press SELECT"
+buttonseletor
+sed -r -i "s/SELECT/${btn}/g;" $ctrl_db
+echo "press START"
+buttonseletor
+sed -r -i "s/START/${btn}/g;" $ctrl_db
+echo "press L1"
+buttonseletor
+sed -r -i "s/L1/${btn}/g;" $ctrl_db
+echo "press R1"
+buttonseletor
+sed -r -i "s/R1/${btn}/g;" $ctrl_db
+echo "press L1 LONG"
+buttonseletor
+sed -r -i "s/L3/${btn}/g;" $ctrl_db
+echo "press R1 LONG"
+buttonseletor
+sed -r -i "s/R3/${btn}/g;" $ctrl_db
+
+echo "Do you have more buttons to configure?
+Press A to continue.
+Any other key to cancel"
+buttonseletor
+if [ "$btn" == "$ok" ]; then
+	echo "press HOME"
+	buttonseletor
+	sed -r -i "s/HOME/${btn}/g;" $ctrl_db
+	echo "press L2"
+	buttonseletor
+	sed -r -i "s/L2/${btn}/g;" $ctrl_db
+	echo "press R2"
+	buttonseletor
+	sed -r -i "s/R2/${btn}/g;" $ctrl_db
+	echo "Press Left Analog X"
+	buttonseletor
+	sed -r -i "s/LX/${btn}/g;" $ctrl_db
+	echo "Press Left Analog Y"
+	buttonseletor
+	sed -r -i "s/LY/${btn}/g;" $ctrl_db
+	echo "Press Right Analog X"
+	buttonseletor
+	sed -r -i "s/RX/${btn}/g;" $ctrl_db
+	echo "Press Right Analog Y"
+	buttonseletor
+	sed -r -i "s/RY/${btn}/g;" $ctrl_db
+else
+	sed -r -i 's/LX/a0/g;' $ctrl_db
+	sed -r -i 's/LY/a1/g;' $ctrl_db
+	sed -r -i 's/RX/a3/g;' $ctrl_db
+	sed -r -i 's/RY/a4/g;' $ctrl_db
+	sed -r -i 's/HOME/b10/g;' $ctrl_db
+	sed -r -i 's/L2/b6/g;' $ctrl_db
+	sed -r -i 's/R2/b7/g;' $ctrl_db
+fi
