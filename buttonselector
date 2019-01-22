@@ -1,6 +1,27 @@
 #!/bin/sh
+#
+#  Copyright 2019 DefKorns (https://gitlab.com/advokaten/remap-canoekachikachi/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+source /etc/preinit
+script_init
+
+joystick="/dev/input/by-path/platform-twi.1-event-joystick"
+
 buttonseletor() {
-	buttons=$(cat /dev/input/by-path/platform-twi.1-event-joystick | hexdump -v -e '1/1 "%02x"' -n 32)
+	buttons=$(cat $joystick | hexdump -v -e '1/1 "%02x"' -n 32)
 	ctrl_db="/var/lib/hakchi/rootfs/gamecontrollerdb.txt"
 	case "${buttons:20:4}" in
 	3001)
@@ -67,8 +88,9 @@ buttonseletor() {
 		btn="a4"
 		;;
 	esac
+	usleep 100000
 }
-
+while [ ! -e $joystick ]; do usleep 100; done
 echo "press UP"
 buttonseletor
 sed -r -i "s/UP/${btn}/g;" $ctrl_db
