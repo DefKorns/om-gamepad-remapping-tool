@@ -1,0 +1,113 @@
+#!/bin/sh
+buttonselector() {
+	buttons=$(cat /dev/input/by-path/platform-twi.1-event-joystick | hexdump -v -e '1/1 "%02x"' -n 32)
+	case "${buttons:20:4}" in
+	3001)
+		echo "b1" >>/tmp/test
+		;;
+	3101)
+		echo "b0" >>/tmp/test
+		;;
+	3301)
+		echo "b2" >>/tmp/test
+		;;
+	3401)
+		echo "b3" >>/tmp/test
+		;;
+	c202)
+		echo "b13" >>/tmp/test
+		;;
+	c302)
+		echo "b14" >>/tmp/test
+		;;
+	c002)
+		echo "b11" >>/tmp/test
+		;;
+	c102)
+		echo "b12" >>/tmp/test
+		;;
+	
+	3a01)
+		echo "b8" >>/tmp/test
+		;;
+	3b01)
+		echo "b9" >>/tmp/test
+		;;
+	3c01)
+		echo "b10" >>/tmp/test
+		;;
+	0200)
+		echo "b4" >>/tmp/test
+		;;
+	3601)
+		echo "a2" >>/tmp/test
+		;;
+	3801)
+		echo "b6" >>/tmp/test
+		;;
+	0500)
+		echo "b5" >>/tmp/test
+		;;
+	3701)
+		echo "a5" >>/tmp/test
+		;;
+	3901)
+		echo "b7" >>/tmp/test
+		;;
+	0000)
+		echo "a0" >>/tmp/test
+		;;
+	0100)
+		echo "a1" >>/tmp/test
+		;;
+	0300)
+		echo "a3" >>/tmp/test
+		;;
+	0400)
+		echo "a4" >>/tmp/test
+		;;
+	esac
+}
+[ -f "/tmp/test" ] && rm -f "/tmp/test"
+echo "Press A"
+buttonselector
+echo "Press B"
+buttonselector
+echo "Press X"
+buttonselector
+echo "Press Y"
+buttonselector
+echo "Press D-Pad Up"
+buttonselector
+echo "Press D-Pad Down"
+buttonselector
+echo "Press D-Pad Left"
+buttonselector
+echo "Press D-Pad Right"
+buttonselector
+echo "Press Select"
+buttonselector
+echo "Press Start"
+buttonselector
+echo "Press Home"
+buttonselector
+echo "Press L1 Soft"
+buttonselector
+echo "Press L1"
+buttonselector
+echo "Press L2"
+buttonselector
+echo "Press R1 Soft"
+buttonselector
+echo "Press R1"
+buttonselector
+echo "Press R2"
+buttonselector
+echo "Press Left Analog X"
+buttonselector
+echo "Press Left Analog Y"
+buttonselector
+echo "Press Right Analog X"
+buttonselector
+echo "Press Right Analog Y"
+buttonselector
