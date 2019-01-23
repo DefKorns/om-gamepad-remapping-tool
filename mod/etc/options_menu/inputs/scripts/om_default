@@ -1,0 +1,9 @@
+#!/bin/sh
+# Restore default input for all users.
+if [ -f "$omModScripts/om_defaultDb.txt" ]; then
+  cp $omModScripts/om_defaultDb.txt /etc/options_menu/input/gamecontrollerdb.txt
+  echo "Inputs reset to default."
+else
+  echo "Error!"
+  echo "Unable to locate default config."
+fi

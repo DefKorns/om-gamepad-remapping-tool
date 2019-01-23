@@ -18,5 +18,7 @@
 source $mountpoint/etc/options_menu/input/scripts/om_vars
 script_init
 
+## check if p2 files existes, if so enable BindP2 and BindAll
+# else Just P1 and restore defaults
 
 usleep 50000 && $optionsMenu/options --commandPath $omModCommands/ --scriptPath $omModScripts --title "$title" &

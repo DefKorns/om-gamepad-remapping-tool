@@ -1,3 +1,3 @@
-COMMAND_NAME=Clover-Kachikachi Remaper
-COMMAND_TYPE=INTERNAL
-COMMAND_STR=sh %script_dir%/remapper.sh
+COMMAND_NAME=Restore to Defaults
+COMMAND_TYPE=EXTERNAL
+COMMAND_STR=sh %script_dir%/om_default

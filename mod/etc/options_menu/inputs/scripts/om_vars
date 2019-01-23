@@ -31,21 +31,22 @@ omModScripts="$omMod/scripts"
 omModSpacer="$omModCommands/c0000_separator"
 
 template="180000004e696e74656e646f20436c00,Nintendo Clovercon,leftx:LX,lefty:LY,rightx:RX,righty:RY,dpup:UP,dpdown:DOWN,dpleft:LEFT,dpright:RIGHT,a:CIRCLE,b:EXE,y:SQUARE,x:TRIANGLE,back:SELECT,start:START,guide:HOME,leftshoulder:L1,leftshoulder:L3,rightshoulder:R1,rightshoulder:R3,lefttrigger:L2,righttrigger:R2,platform:Linux,"
-player1="/dev/input/by-path/platform-twi.1-event-joystick"
-player2="/dev/input/by-path/platform-twi.2-event-joystick"
+p1_ctrl="/dev/input/by-path/platform-twi.1-event-joystick"
+p2_ctrl="/dev/input/by-path/platform-twi.2-event-joystick"
+default_db="$omModScripts/om_defaultDb.txt"
 ctrl_db="$omModScripts/gamecontrollerdb.txt"
 
 #functions
 createDb() {
-	sed "176c$template" "$omModScripts/om_defaultDb" >"$ctrl_db"
+	sed "176c$template" "$default_db" >"$ctrl_db"
 }
 
 p1Selector() {
-	buttons=$(cat "$player1" | hexdump -v -e '1/1 "%02x"' -n 32)
+	buttons=$(cat "$p1_ctrl" | hexdump -v -e '1/1 "%02x"' -n 32)
 	buttonInput
 }
 p2Selector() {
-	buttons=$(cat "$player2" | hexdump -v -e '1/1 "%02x"' -n 32)
+	buttons=$(cat "$p2_ctrl" | hexdump -v -e '1/1 "%02x"' -n 32)
 	buttonInput
 }
 
