@@ -20,7 +20,7 @@ script_init
 
 joystick="/dev/input/by-path/platform-twi.1-event-joystick"
 
-buttonseletor() {
+p1Selector() {
 	buttons=$(cat $joystick | hexdump -v -e '1/1 "%02x"' -n 32)
 	ctrl_db="/var/lib/hakchi/rootfs/gamecontrollerdb.txt"
 	case "${buttons:20:4}" in
@@ -90,76 +90,77 @@ buttonseletor() {
 	esac
 	usleep 100000
 }
-while [ ! -e $joystick ]; do usleep 100; done
+ctrl_db="/var/lib/hakchi/rootfs/gamecontrollerdb.txt"
+while [ ! -e $player1 ]; do usleep 100; done
 echo "press UP"
-buttonseletor
+p1Selector
 sed -r -i "s/UP/${btn}/g;" $ctrl_db
 echo "press DOWN"
-buttonseletor
+p1Selector
 sed -r -i "s/DOWN/${btn}/g;" $ctrl_db
 echo "press LEFT"
-buttonseletor
+p1Selector
 sed -r -i "s/LEFT/${btn}/g;" $ctrl_db
 echo "press RIGHT"
-buttonseletor
+p1Selector
 sed -r -i "s/RIGHT/${btn}/g;" $ctrl_db
 echo "press A"
-buttonseletor
+p1Selector
 ok="$btn"
 sed -r -i "s/CIRCLE/${btn}/g;" $ctrl_db
 echo "press B"
-buttonseletor
+p1Selector
 sed -r -i "s/EXE/${btn}/g;" $ctrl_db
 echo "press X"
-buttonseletor
+p1Selector
 sed -r -i "s/TRIANGLE/${btn}/g;" $ctrl_db
 echo "press Y"
-buttonseletor
+p1Selector
 sed -r -i "s/SQUARE/${btn}/g;" $ctrl_db
 echo "press SELECT"
-buttonseletor
+p1Selector
 sed -r -i "s/SELECT/${btn}/g;" $ctrl_db
 echo "press START"
-buttonseletor
+p1Selector
 sed -r -i "s/START/${btn}/g;" $ctrl_db
 echo "press L1"
-buttonseletor
+p1Selector
 sed -r -i "s/L1/${btn}/g;" $ctrl_db
 echo "press R1"
-buttonseletor
+p1Selector
 sed -r -i "s/R1/${btn}/g;" $ctrl_db
 echo "press L1 LONG"
-buttonseletor
+p1Selector
 sed -r -i "s/L3/${btn}/g;" $ctrl_db
 echo "press R1 LONG"
-buttonseletor
+p1Selector
 sed -r -i "s/R3/${btn}/g;" $ctrl_db
 
 echo "Do you have more buttons to configure?
 Press A to continue.
 Any other key to cancel"
-buttonseletor
+p1Selector
 if [ "$btn" == "$ok" ]; then
 	echo "press HOME"
-	buttonseletor
+	p1Selector
 	sed -r -i "s/HOME/${btn}/g;" $ctrl_db
 	echo "press L2"
-	buttonseletor
+	p1Selector
 	sed -r -i "s/L2/${btn}/g;" $ctrl_db
 	echo "press R2"
-	buttonseletor
+	p1Selector
 	sed -r -i "s/R2/${btn}/g;" $ctrl_db
 	echo "Press Left Analog X"
-	buttonseletor
+	p1Selector
 	sed -r -i "s/LX/${btn}/g;" $ctrl_db
 	echo "Press Left Analog Y"
-	buttonseletor
+	p1Selector
 	sed -r -i "s/LY/${btn}/g;" $ctrl_db
 	echo "Press Right Analog X"
-	buttonseletor
+	p1Selector
 	sed -r -i "s/RX/${btn}/g;" $ctrl_db
 	echo "Press Right Analog Y"
-	buttonseletor
+	p1Selector
 	sed -r -i "s/RY/${btn}/g;" $ctrl_db
 else
 	sed -r -i 's/LX/a0/g;' $ctrl_db

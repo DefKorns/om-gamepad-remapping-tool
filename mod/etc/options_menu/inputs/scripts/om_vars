@@ -29,33 +29,27 @@ omMod="$optionsMenu/$modtitle"
 omModCommands="$omMod/commands"
 omModScripts="$omMod/scripts"
 omModSpacer="$omModCommands/c0000_separator"
-omModImgs="$omMod/images"
-omModFnts="$omMod/fonts"
-omModSub="$omMod/downloads"
-omModSubCmds="$omModSub/commands"
-omModSubScripts="$omModSub/scripts"
-omModSubSpacer="$omModSubCmds/c9998_separator"
-omModSettings="$omMod/settings"
-omModSettingsCmds="$omModSettings/commands"
-omModSettingsScripts="$omModSettings/scripts"
-
-omDummy="$omModCommands/c0000_0000"
-subDummy="$omModSubCmds/c0000_0000"
-
 
 template="180000004e696e74656e646f20436c00,Nintendo Clovercon,leftx:LX,lefty:LY,rightx:RX,righty:RY,dpup:UP,dpdown:DOWN,dpleft:LEFT,dpright:RIGHT,a:CIRCLE,b:EXE,y:SQUARE,x:TRIANGLE,back:SELECT,start:START,guide:HOME,leftshoulder:L1,leftshoulder:L3,rightshoulder:R1,rightshoulder:R3,lefttrigger:L2,righttrigger:R2,platform:Linux,"
 player1="/dev/input/by-path/platform-twi.1-event-joystick"
 player2="/dev/input/by-path/platform-twi.2-event-joystick"
 ctrl_db="$omModScripts/gamecontrollerdb.txt"
 
-createDb(){
-    sed "176c$template" "$omModScripts/om_defaultDb" >"$ctrl_db"
+#functions
+createDb() {
+	sed "176c$template" "$omModScripts/om_defaultDb" >"$ctrl_db"
 }
 
+p1Selector() {
+	buttons=$(cat "$player1" | hexdump -v -e '1/1 "%02x"' -n 32)
+	buttonInput
+}
+p2Selector() {
+	buttons=$(cat "$player2" | hexdump -v -e '1/1 "%02x"' -n 32)
+	buttonInput
+}
 
-buttonseletor() {
-	buttons=$(cat $player1 | hexdump -v -e '1/1 "%02x"' -n 32)
-	
+buttonInput() {
 	case "${buttons:20:4}" in
 	3001)
 		btn="b1"
