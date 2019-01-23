@@ -1,0 +1,125 @@
+#!/bin/sh
+#
+#  Copyright 2019 DefKorns (https://gitlab.com/advokaten/remap-canoekachikachi/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+source /etc/preinit
+script_init
+#
+modtitle="input"
+title="Controller Remapping"
+
+# Options Menu
+optionsMenu="$mountpoint/etc/options_menu"
+omCommands="$optionsMenu/commands"
+omScripts="$optionsMenu/scripts"
+omMod="$optionsMenu/$modtitle"
+omModCommands="$omMod/commands"
+omModScripts="$omMod/scripts"
+omModSpacer="$omModCommands/c0000_separator"
+omModImgs="$omMod/images"
+omModFnts="$omMod/fonts"
+omModSub="$omMod/downloads"
+omModSubCmds="$omModSub/commands"
+omModSubScripts="$omModSub/scripts"
+omModSubSpacer="$omModSubCmds/c9998_separator"
+omModSettings="$omMod/settings"
+omModSettingsCmds="$omModSettings/commands"
+omModSettingsScripts="$omModSettings/scripts"
+
+omDummy="$omModCommands/c0000_0000"
+subDummy="$omModSubCmds/c0000_0000"
+
+
+template="180000004e696e74656e646f20436c00,Nintendo Clovercon,leftx:LX,lefty:LY,rightx:RX,righty:RY,dpup:UP,dpdown:DOWN,dpleft:LEFT,dpright:RIGHT,a:CIRCLE,b:EXE,y:SQUARE,x:TRIANGLE,back:SELECT,start:START,guide:HOME,leftshoulder:L1,leftshoulder:L3,rightshoulder:R1,rightshoulder:R3,lefttrigger:L2,righttrigger:R2,platform:Linux,"
+player1="/dev/input/by-path/platform-twi.1-event-joystick"
+player2="/dev/input/by-path/platform-twi.2-event-joystick"
+ctrl_db="$omModScripts/gamecontrollerdb.txt"
+
+createDb(){
+    sed "176c$template" "$omModScripts/om_defaultDb" >"$ctrl_db"
+}
+
+
+buttonseletor() {
+	buttons=$(cat $player1 | hexdump -v -e '1/1 "%02x"' -n 32)
+	
+	case "${buttons:20:4}" in
+	3001)
+		btn="b1"
+		;;
+	3101)
+		btn="b0"
+		;;
+	3301)
+		btn="b2"
+		;;
+	3401)
+		btn="b3"
+		;;
+	c202)
+		btn="b13"
+		;;
+	c302)
+		btn="b14"
+		;;
+	c002)
+		btn="b11"
+		;;
+	c102)
+		btn="b12"
+		;;
+	0200)
+		btn="b4"
+		;;
+	3601)
+		btn="a2"
+		;;
+	3801)
+		btn="b7"
+		;;
+	0500)
+		btn="b5"
+		;;
+	3701)
+		btn="a5"
+		;;
+	3901)
+		btn="b7"
+		;;
+	3a01)
+		btn="b9"
+		;;
+	3b01)
+		btn="b9"
+		;;
+	3c01)
+		btn="b10"
+		;;
+	0000)
+		btn="a0"
+		;;
+	0100)
+		btn="a1"
+		;;
+	0300)
+		btn="a3"
+		;;
+	0400)
+		btn="a4"
+		;;
+	esac
+	usleep 100000
+}
