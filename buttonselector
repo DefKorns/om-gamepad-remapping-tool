@@ -125,16 +125,22 @@ p1Selector
 sed -r -i "s/START/${btn}/g;" $ctrl_db
 echo "press L1"
 p1Selector
+if [ "$btn" == "3601" ]; then
 sed -r -i "s/L1/${btn}/g;" $ctrl_db
+sed -r -i "s/L3/b4/g;" $ctrl_db
+else
+sed -r -i "s/L1/${btn}/g;" $ctrl_db
+sed -r -i "s/L3/a2/g;" $ctrl_db
+fi
 echo "press R1"
 p1Selector
+if [ "$btn" == "3701" ]; then
 sed -r -i "s/R1/${btn}/g;" $ctrl_db
-echo "press L1 LONG"
-p1Selector
-sed -r -i "s/L3/${btn}/g;" $ctrl_db
-echo "press R1 LONG"
-p1Selector
-sed -r -i "s/R3/${btn}/g;" $ctrl_db
+sed -r -i "s/R3/b5/g;" $ctrl_db
+else
+sed -r -i "s/R1/${btn}/g;" $ctrl_db
+sed -r -i "s/R3/a5/g;" $ctrl_db
+fi
 
 echo "Do you have more buttons to configure?
 Press A to continue.

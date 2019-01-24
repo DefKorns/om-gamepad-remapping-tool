@@ -18,7 +18,7 @@
 source /etc/preinit
 script_init
 #
-modtitle="input"
+modtitle="inputs"
 title="Controller Remapping"
 
 # Options Menu
@@ -31,90 +31,68 @@ omModScripts="$omMod/scripts"
 omModSpacer="$omModCommands/c0000_separator"
 
 template="180000004e696e74656e646f20436c00,Nintendo Clovercon,leftx:LX,lefty:LY,rightx:RX,righty:RY,dpup:UP,dpdown:DOWN,dpleft:LEFT,dpright:RIGHT,a:CIRCLE,b:EXE,y:SQUARE,x:TRIANGLE,back:SELECT,start:START,guide:HOME,leftshoulder:L1,leftshoulder:L3,rightshoulder:R1,rightshoulder:R3,lefttrigger:L2,righttrigger:R2,platform:Linux,"
-p1_ctrl="/dev/input/by-path/platform-twi.1-event-joystick"
-p2_ctrl="/dev/input/by-path/platform-twi.2-event-joystick"
+ctrl_p1="/dev/input/by-path/platform-twi.1-event-joystick"
+ctrl_p2="/dev/input/by-path/platform-twi.2-event-joystick"
 default_db="$omModScripts/om_defaultDb.txt"
 ctrl_db="$omModScripts/gamecontrollerdb.txt"
+disableBindP2="$omModCommands/_BindP2"
+enableBindP2="$omModCommands/c0000_BindP2"
+disableBindAll="$omModCommands/_BindAll"
+enableBindAll="$omModCommands/c0000_BindAll"
 
-#functions
+# FUNCTIONS
+rename() {
+	[ -f "$1" ] && mv "$1" "$2"
+}
+
+remove() {
+	[ -f "$1" ] && rm -rf "$1"
+}
+
+link() {
+	[ -f "$1" ] && ln -sf "$1" "$2"
+}
+
+copier() {
+	[ -f "$1" ] && cp -r "$1" "$2"
+}
+
 createDb() {
 	sed "176c$template" "$default_db" >"$ctrl_db"
 }
 
 p1Selector() {
-	buttons=$(cat "$p1_ctrl" | hexdump -v -e '1/1 "%02x"' -n 32)
+	input=$(cat "$ctrl_p1" | hexdump -v -e '1/1 "%02x"' -n 32)
 	buttonInput
 }
 p2Selector() {
-	buttons=$(cat "$p2_ctrl" | hexdump -v -e '1/1 "%02x"' -n 32)
+	input=$(cat "$ctrl_p2" | hexdump -v -e '1/1 "%02x"' -n 32)
 	buttonInput
 }
 
 buttonInput() {
-	case "${buttons:20:4}" in
-	3001)
-		btn="b1"
-		;;
-	3101)
-		btn="b0"
-		;;
-	3301)
-		btn="b2"
-		;;
-	3401)
-		btn="b3"
-		;;
-	c202)
-		btn="b13"
-		;;
-	c302)
-		btn="b14"
-		;;
-	c002)
-		btn="b11"
-		;;
-	c102)
-		btn="b12"
-		;;
-	0200)
-		btn="b4"
-		;;
-	3601)
-		btn="a2"
-		;;
-	3801)
-		btn="b7"
-		;;
-	0500)
-		btn="b5"
-		;;
-	3701)
-		btn="a5"
-		;;
-	3901)
-		btn="b7"
-		;;
-	3a01)
-		btn="b9"
-		;;
-	3b01)
-		btn="b9"
-		;;
-	3c01)
-		btn="b10"
-		;;
-	0000)
-		btn="a0"
-		;;
-	0100)
-		btn="a1"
-		;;
-	0300)
-		btn="a3"
-		;;
-	0400)
-		btn="a4"
-		;;
+	case "${input:20:4}" in
+	3001) btn="b1";;
+	3101) btn="b0";;
+	3301) btn="b2";;
+	3401) btn="b3";;
+	c202) btn="b13";;
+	c302) btn="b14";;
+	c002) btn="b11";;
+	c102) btn="b12";;
+	0200) btn="b4";;
+	3601) btn="a2";;
+	3801) btn="b7";;
+	0500) btn="b5";;
+	3701) btn="a5";;
+	3901) btn="b7";;
+	3a01) btn="b9";;
+	3b01) btn="b9";;
+	3c01) btn="b10";;
+	0000) btn="a0";;
+	0100) btn="a1";;
+	0300) btn="a3";;
+	0400) btn="a4";;
 	esac
 	usleep 100000
 }

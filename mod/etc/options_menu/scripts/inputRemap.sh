@@ -17,8 +17,16 @@
 #
 source $mountpoint/etc/options_menu/input/scripts/om_vars
 script_init
-
-## check if p2 files existes, if so enable BindP2 and BindAll
-# else Just P1 and restore defaults
+# If controller 2 file exists, activate Bind P2 option.
+# And if Controller 1 also exist, activate Bind All. Otherwise will disable Bind P2 and Bind All
+if [ -e "$ctrl_p2" ]; then
+	rename "$disableBindP2" "$enableBindP2"
+	[ -e "$ctrl_p1" ] && rename "$disableBindAll" "$enableBindAll"
+else
+	# waits to Controller 1 to be connected before disable
+	while [ ! -e "$ctrl_p1" ]; do usleep 100; done
+	rename "$enableBindP2" "$disableBindP2"
+	rename "$enableBindAll" "$disableBindAll"
+fi
 
 usleep 50000 && $optionsMenu/options --commandPath $omModCommands/ --scriptPath $omModScripts --title "$title" &
