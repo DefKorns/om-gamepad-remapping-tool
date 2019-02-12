@@ -1,4 +1,4 @@
-COMMAND_NAME=Network Options
+COMMAND_NAME=GamePad Remapper
 COMMAND_TYPE=EXTERNAL
 RESTART_UI=FALSE
 COMMAND_STR=sh %script_dir%/inputRemap.sh

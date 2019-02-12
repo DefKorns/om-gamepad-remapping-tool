@@ -1,3 +1,0 @@
-COMMAND_NAME=Clover-Kachikachi Remaper
-COMMAND_TYPE=INTERNAL
-COMMAND_STR=sh %script_dir%/remapper.sh

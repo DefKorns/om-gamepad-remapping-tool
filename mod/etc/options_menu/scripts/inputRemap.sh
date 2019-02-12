@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-source $mountpoint/etc/options_menu/input/scripts/om_vars
+source $mountpoint/etc/options_menu/inputs/scripts/om_vars
 script_init
 # If controller 2 file exists, activate Bind P2 option.
 # And if Controller 1 also exist, activate Bind All. Otherwise will disable Bind P2 and Bind All

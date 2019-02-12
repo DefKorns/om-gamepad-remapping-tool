@@ -1,0 +1,140 @@
+#!/bin/sh
+#
+#  Copyright 2019 DefKorns (https://gitlab.com/advokaten/remap-canoekachikachi/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# source $mountpoint/etc/options_menu/inputs/scripts/om_vars
+# script_init
+sh /etc/options_menu/button
+# createDb
+
+# multiplayer="0"
+# while [ "$multiplayer" -lt 1 ]; do
+#     player="$(p1Selector)"
+#     [ "$multiplayer" = "1" ] && player="$(p2Selector)"
+#     while [ ! -e "$player1" ]; do usleep 100; done
+#     echo "press UP"
+#     decodepng $omModAssets/up.png >/dev/fb0
+#     player
+#     sed -r -i "s/UP/${btn}/g;" $ctrl_db
+#     echo "press DOWN"
+#     decodepng $omModAssets/down.png >/dev/fb0
+#     player
+#     sed -r -i "s/DOWN/${btn}/g;" $ctrl_db
+#     echo "press LEFT"
+#     decodepng $omModAssets/left.png >/dev/fb0
+#     player
+#     sed -r -i "s/LEFT/${btn}/g;" $ctrl_db
+#     echo "press RIGHT"
+#     decodepng $omModAssets/right.png >/dev/fb0
+#     player
+#     sed -r -i "s/RIGHT/${btn}/g;" $ctrl_db
+#     echo "press A"
+#     decodepng $omModAssets/a.png >/dev/fb0
+#     player
+#     ok="$btn"
+#     sed -r -i "s/CIRCLE/${btn}/g;" $ctrl_db
+#     echo "press B"
+#     decodepng $omModAssets/b.png >/dev/fb0
+#     player
+#     sed -r -i "s/EXE/${btn}/g;" $ctrl_db
+#     echo "press X"
+#     decodepng $omModAssets/x.png >/dev/fb0
+#     player
+#     sed -r -i "s/TRIANGLE/${btn}/g;" $ctrl_db
+#     echo "press Y"
+#     decodepng $omModAssets/y.png >/dev/fb0
+#     player
+#     sed -r -i "s/SQUARE/${btn}/g;" $ctrl_db
+#     echo "press SELECT"
+#     decodepng $omModAssets/select.png >/dev/fb0
+#     player
+#     sed -r -i "s/SELECT/${btn}/g;" $ctrl_db
+#     echo "press START"
+#     decodepng $omModAssets/start.png >/dev/fb0
+#     player
+#     sed -r -i "s/START/${btn}/g;" $ctrl_db
+#     echo "press L1"
+#     decodepng $omModAssets/l1.png >/dev/fb0
+#     player
+#     if [ "$btn" == "3601" ]; then
+#         sed -r -i "s/L1/${btn}/g;" $ctrl_db
+#         sed -r -i "s/L3/b4/g;" $ctrl_db
+#     else
+#         sed -r -i "s/L1/${btn}/g;" $ctrl_db
+#         sed -r -i "s/L3/a2/g;" $ctrl_db
+#     fi
+#     echo "press R1"
+#     decodepng $omModAssets/r1.png >/dev/fb0
+#     player
+#     if [ "$btn" == "3701" ]; then
+#         sed -r -i "s/R1/${btn}/g;" $ctrl_db
+#         sed -r -i "s/R3/b5/g;" $ctrl_db
+#     else
+#         sed -r -i "s/R1/${btn}/g;" $ctrl_db
+#         sed -r -i "s/R3/a5/g;" $ctrl_db
+#     fi
+
+#     echo "Do you have more buttons to configure?
+# Press A to continue.
+# Any other key to cancel"
+#     decodepng $omModAssets/continue.png >/dev/fb0
+#     player
+#     if [ "$btn" == "$ok" ]; then
+#         echo "press HOME"
+#         decodepng $omModAssets/home.png >/dev/fb0
+#         player
+#         sed -r -i "s/HOME/${btn}/g;" $ctrl_db
+#         echo "press L2"
+#         decodepng $omModAssets/l2.png >/dev/fb0
+#         player
+#         sed -r -i "s/L2/${btn}/g;" $ctrl_db
+#         echo "press R2"
+#         decodepng $omModAssets/r2.png >/dev/fb0
+#         player
+#         sed -r -i "s/R2/${btn}/g;" $ctrl_db
+#         echo "Press Left Analog X"
+#         decodepng $omModAssets/lx.png >/dev/fb0
+#         player
+#         sed -r -i "s/LX/${btn}/g;" $ctrl_db
+#         echo "Press Left Analog Y"
+#         decodepng $omModAssets/ly.png >/dev/fb0
+#         player
+#         sed -r -i "s/LY/${btn}/g;" $ctrl_db
+#         echo "Press Right Analog X"
+#         decodepng $omModAssets/rx.png >/dev/fb0
+#         player
+#         sed -r -i "s/RX/${btn}/g;" $ctrl_db
+#         echo "Press Right Analog Y"
+#         decodepng $omModAssets/ry.png >/dev/fb0
+#         player
+#         sed -r -i "s/RY/${btn}/g;" $ctrl_db
+#     else
+#         sed -r -i 's/LX/a0/g;' $ctrl_db
+#         sed -r -i 's/LY/a1/g;' $ctrl_db
+#         sed -r -i 's/RX/a3/g;' $ctrl_db
+#         sed -r -i 's/RY/a4/g;' $ctrl_db
+#         sed -r -i 's/HOME/b10/g;' $ctrl_db
+#         sed -r -i 's/L2/b6/g;' $ctrl_db
+#         sed -r -i 's/R2/b7/g;' $ctrl_db
+#     fi
+#     decodepng $omModAssets/final.png >/dev/fb0
+#     if [ "$btn" == "$ok" ]; then
+#         multiplayer=1
+#     else
+#         uistart
+#         /etc/init.d/S8103OptionsMenu restart
+#     fi
+# done
