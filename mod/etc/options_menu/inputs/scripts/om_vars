@@ -40,6 +40,7 @@ disableBindP2="$omModCommands/_BindP2"
 enableBindP2="$omModCommands/c0000_BindP2"
 disableBindAll="$omModCommands/_BindAll"
 enableBindAll="$omModCommands/c0000_BindAll"
+# multiplayer="0"
 
 # FUNCTIONS
 rename() {
@@ -58,15 +59,29 @@ copier() {
 	[ -f "$1" ] && cp -r "$1" "$2"
 }
 
+toggleMenu() {
+	if [ -e "$ctrl_p2" ]; then
+		rename "$disableBindP2" "$enableBindP2"
+		[ -e "$ctrl_p1" ] && rename "$disableBindAll" "$enableBindAll"
+	else
+		# waits to Controller 1 to be connected before disable
+		while [ ! -e "$ctrl_p1" ]; do usleep 100; done
+		rename "$enableBindP2" "$disableBindP2"
+		rename "$enableBindAll" "$disableBindAll"
+	fi
+}
+
 createDb() {
 	sed "176c$template" "$default_db" >"$ctrl_db"
 }
 
 p1Selector() {
+	echo "Player 1"
 	input=$(cat "$ctrl_p1" | hexdump -v -e '1/1 "%02x"' -n 32)
 	buttonInput
 }
 p2Selector() {
+	echo "Player 2"
 	input=$(cat "$ctrl_p2" | hexdump -v -e '1/1 "%02x"' -n 32)
 	buttonInput
 }
@@ -100,9 +115,10 @@ buttonInput() {
 
 remapping() {
 	# local multiplayer="0"
-	# while [ "$multiplayer" -lt 1 ]; do
+	# while [ "$multiplayer" -lt 2 ]; do
+	while [ "$multiplayer" -le 1 ]; do
 		player="$(p1Selector)"
-		# [ "$multiplayer" = "1" ] && player="$(p2Selector)"
+		[ "$multiplayer" = "1" ] && player="$(p2Selector)"
 		while [ ! -e $player1 ]; do usleep 100; done
 		echo "press UP"
 		decodepng $omModAssets/up.png >/dev/fb0
@@ -210,10 +226,11 @@ Any other key to cancel"
 			sed -r -i 's/R2/b7/g;' $ctrl_db
 		fi
 		decodepng $omModAssets/final.png >/dev/fb0
-		if [ "$btn" == "$ok" ]; then
-			multiplayer=1
-		else
-			uistart
+		if [ "$btn" != "$ok" ] || [ "$btn" != "3001" ]; then
+			break
 		fi
-	# done
+		multiplayer=$((multiplayer + 1))
+	done
+	uistart
+	/etc/init.d/S8103OptionsMenu restart
 }

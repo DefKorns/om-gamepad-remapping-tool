@@ -18,9 +18,8 @@
 source $mountpoint/etc/options_menu/inputs/scripts/om_vars
 script_init
 # sh /etc/options_menu/button
-export multiplayer="0"
+export multiplayer="1"
 createDb
-
 remapping
 
 
