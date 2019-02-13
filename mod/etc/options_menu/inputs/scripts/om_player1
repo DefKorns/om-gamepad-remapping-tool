@@ -20,7 +20,6 @@ script_init
 # sh /etc/options_menu/button
 export multiplayer="0"
 createDb
-
 remapping
 
 

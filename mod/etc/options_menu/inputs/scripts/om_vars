@@ -114,7 +114,8 @@ buttonInput() {
 }
 
 remapping() {
-	# local multiplayer="0"
+	echo "remapping"
+	local multiplayer="0"
 	# while [ "$multiplayer" -lt 2 ]; do
 	while [ "$multiplayer" -le 1 ]; do
 		player="$(p1Selector)"
