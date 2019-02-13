@@ -16,13 +16,13 @@ ctrl_p2="/dev/input/by-path/platform-twi.2-event-joystick"
 default_db="$omModScripts/om_defaultDb.txt"
 ctrl_db="$omModScripts/gamecontrollerdb.txt"
 ctrl_db2="$omModScripts/gamecontrollerdb2.txt"
+
 createDb() {
 	if [ "$multiplayer" -le "1" ]; then
 		sed "176c$template" "$default_db" >"$ctrl_db"
 	else
 		sed "176c$template" "$default_db" >"$ctrl_db2"
 	fi
-
 }
 
 p1Selector() {
@@ -33,6 +33,7 @@ p2Selector() {
 	input=$(cat "$ctrl_p2" | hexdump -v -e '1/1 "%02x"' -n 32)
 	buttonInput
 }
+
 eoFile() {
 	decodepng $omModAssets/final.png >/dev/fb0
 	echo "uistop; \
@@ -45,7 +46,6 @@ player() {
 	if [ "$multiplayer" -le "1" ]; then
 		p1Selector
 	else
-		# while [ ! -e $ctrl_p2 ]; do usleep 100; done
 		[ ! -e "$ctrl_p2" ] && eoFile
 		p2Selector
 	fi
@@ -87,50 +87,40 @@ while [ "$multiplayer" -le "1" ]; do
 	fi
 	multiplayer=$((multiplayer + 1))
 	while [ ! -e $ctrl_p1 ]; do usleep 100; done
-	# echo "press UP"
 	decodepng $omModAssets/up.png >/dev/fb0
 	player
 	sed -r -i "s/UP/${btn}/g;" $ctrl_db
-	# echo "press DOWN"
 	decodepng $omModAssets/down.png >/dev/fb0
 	player
 	sed -r -i "s/DOWN/${btn}/g;" $ctrl_db
-	# echo "press LEFT"
 	decodepng $omModAssets/left.png >/dev/fb0
 	player
 	sed -r -i "s/LEFT/${btn}/g;" $ctrl_db
-	# echo "press RIGHT"
 	decodepng $omModAssets/right.png >/dev/fb0
 	player
 	sed -r -i "s/RIGHT/${btn}/g;" $ctrl_db
-	# echo "press A"
 	decodepng $omModAssets/a.png >/dev/fb0
 	player
 	ok="$btn"
 	sed -r -i "s/CIRCLE/${btn}/g;" $ctrl_db
-	# echo "press B"
 	decodepng $omModAssets/b.png >/dev/fb0
 	player
 	sed -r -i "s/EXE/${btn}/g;" $ctrl_db
-	# echo "press X"
 	decodepng $omModAssets/x.png >/dev/fb0
 	player
 	sed -r -i "s/TRIANGLE/${btn}/g;" $ctrl_db
-	# echo "press Y"
 	decodepng $omModAssets/y.png >/dev/fb0
 	player
 	sed -r -i "s/SQUARE/${btn}/g;" $ctrl_db
-	# echo "press SELECT"
 	decodepng $omModAssets/select.png >/dev/fb0
 	player
 	sed -r -i "s/SELECT/${btn}/g;" $ctrl_db
-	# echo "press START"
 	decodepng $omModAssets/start.png >/dev/fb0
 	player
 	sed -r -i "s/START/${btn}/g;" $ctrl_db
-	# echo "press L1"
 	decodepng $omModAssets/l1.png >/dev/fb0
 	player
+
 	if [ "$btn" == "a2" ]; then
 		sed -r -i "s/L1/${btn}/g;" $ctrl_db
 		sed -r -i "s/L3/b4/g;" $ctrl_db
@@ -138,9 +128,10 @@ while [ "$multiplayer" -le "1" ]; do
 		sed -r -i "s/L1/${btn}/g;" $ctrl_db
 		sed -r -i "s/L3/a2/g;" $ctrl_db
 	fi
-	# echo "press R1"
+
 	decodepng $omModAssets/r1.png >/dev/fb0
 	player
+
 	if [ "$btn" == "a5" ]; then
 		sed -r -i "s/R1/${btn}/g;" $ctrl_db
 		sed -r -i "s/R3/b5/g;" $ctrl_db
@@ -149,54 +140,46 @@ while [ "$multiplayer" -le "1" ]; do
 		sed -r -i "s/R3/a5/g;" $ctrl_db
 	fi
 
-	# 	echo "Do you have more buttons to configure?
-	# Press A to continue.
-	# Any other key to cancel"
-
 	decodepng $omModAssets/continue.png >/dev/fb0
 	player
-	# 	if [ "$btn" == "$ok" ] || [ "$btn" == "3001" ]; then
-	# 		echo "press HOME"
-	# 		decodepng $omModAssets/home.png >/dev/fb0
-	# 		player
-	# 		sed -r -i "s/HOME/${btn}/g;" $ctrl_db
-	# 		echo "press L2"
-	# 		decodepng $omModAssets/l2.png >/dev/fb0
-	# 		player
-	# 		sed -r -i "s/L2/${btn}/g;" $ctrl_db
-	# 		echo "press R2"
-	# 		decodepng $omModAssets/r2.png >/dev/fb0
-	# 		player
-	# 		sed -r -i "s/R2/${btn}/g;" $ctrl_db
-	# 		echo "Press Left Analog X"
-	# 		decodepng $omModAssets/lx.png >/dev/fb0
-	# 		player
-	# 		sed -r -i "s/LX/${btn}/g;" $ctrl_db
-	# 		echo "Press Left Analog Y"
-	# 		decodepng $omModAssets/ly.png >/dev/fb0
-	# 		player
-	# 		sed -r -i "s/LY/${btn}/g;" $ctrl_db
-	# 		echo "Press Right Analog X"
-	# 		decodepng $omModAssets/rx.png >/dev/fb0
-	# 		player
-	# 		sed -r -i "s/RX/${btn}/g;" $ctrl_db
-	# 		echo "Press Right Analog Y"
-	# 		decodepng $omModAssets/ry.png >/dev/fb0
-	# 		player
-	# 		sed -r -i "s/RY/${btn}/g;" $ctrl_db
-	# 	else
-	# 		sed -r -i 's/LX/a0/g;' $ctrl_db
-	# 		sed -r -i 's/LY/a1/g;' $ctrl_db
-	# 		sed -r -i 's/RX/a3/g;' $ctrl_db
-	# 		sed -r -i 's/RY/a4/g;' $ctrl_db
-	# 		sed -r -i 's/HOME/b10/g;' $ctrl_db
-	# 		sed -r -i 's/L2/b6/g;' $ctrl_db
-	# 		sed -r -i 's/R2/b7/g;' $ctrl_db
-	# 	fi
+
+	if [ "$btn" == "$ok" ]; then
+		decodepng $omModAssets/l2.png >/dev/fb0
+		player
+		sed -r -i "s/L2/${btn}/g;" $ctrl_db
+		decodepng $omModAssets/r2.png >/dev/fb0
+		player
+		sed -r -i "s/R2/${btn}/g;" $ctrl_db
+		decodepng $omModAssets/home.png >/dev/fb0
+		player
+		sed -r -i "s/HOME/${btn}/g;" $ctrl_db
+		decodepng $omModAssets/ly.png >/dev/fb0
+		player
+		sed -r -i "s/LY/${btn}/g;" $ctrl_db
+		decodepng $omModAssets/lx.png >/dev/fb0
+		player
+		sed -r -i "s/LX/${btn}/g;" $ctrl_db
+		decodepng $omModAssets/ry.png >/dev/fb0
+		player
+		sed -r -i "s/RY/${btn}/g;" $ctrl_db
+		decodepng $omModAssets/rx.png >/dev/fb0
+		player
+		sed -r -i "s/RX/${btn}/g;" $ctrl_db
+	else
+		sed -r -i 's/LX/a0/g;' $ctrl_db
+		sed -r -i 's/LY/a1/g;' $ctrl_db
+		sed -r -i 's/RX/a3/g;' $ctrl_db
+		sed -r -i 's/RY/a4/g;' $ctrl_db
+		sed -r -i 's/HOME/b10/g;' $ctrl_db
+		sed -r -i 's/L2/b6/g;' $ctrl_db
+		sed -r -i 's/R2/b7/g;' $ctrl_db
+	fi
+
 	if [ "$multiplayer" -le "1" ]; then
 		decodepng $omModAssets/gamepad2.png >/dev/fb0
+		player
 	fi
-	player
+# player
 	if [ "$btn" != "$ok" ]; then
 		multiplayer=$((multiplayer + 1))
 		eoFile
