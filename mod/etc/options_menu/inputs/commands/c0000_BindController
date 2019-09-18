@@ -1,0 +1,3 @@
+COMMAND_NAME=Bind Gamepad
+COMMAND_TYPE=EXTERNAL
+COMMAND_STR=sh %script_dir%/om_controller

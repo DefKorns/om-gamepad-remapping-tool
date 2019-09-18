@@ -17,7 +17,5 @@
 #
 source $mountpoint/etc/options_menu/inputs/scripts/om_vars
 script_init
-# If controller 2 file exists, activate Bind P2 option.
-# And if Controller 1 also exist, activate Bind All. Otherwise will disable Bind P2 and Bind All
 toggleMenu
-usleep 50000 && $optionsMenu/options --commandPath $omModCommands/ --scriptPath $omModScripts --title "$title" &
+usleep 50000 && $optionsMenu/options --commandPath $omModCommands/ --scriptPath $omModScripts --title "$omTitle" &

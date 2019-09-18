@@ -17,11 +17,7 @@
 #
 source $mountpoint/etc/options_menu/inputs/scripts/om_vars
 script_init
-# Restore default input for all users.
-if [ -f "$omModScripts/om_defaultDb.txt" ]; then
-  cp $omModScripts/om_defaultDb.txt /etc/options_menu/input/gamecontrollerdb.txt
-  echo "Inputs reset to default."
-else
-  echo "Error!"
-  echo "Unable to locate default config."
-fi
+
+uninstall
+
+$optionsMenu/options --commandPath $omModCommands/ --scriptPath $omModScripts --title "$omTitle" &

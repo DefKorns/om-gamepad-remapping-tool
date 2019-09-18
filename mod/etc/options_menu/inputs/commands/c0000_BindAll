@@ -1,3 +1,0 @@
-COMMAND_NAME=Bind Both
-COMMAND_TYPE=INTERNAL
-COMMAND_STR=sh %script_dir%/om_both

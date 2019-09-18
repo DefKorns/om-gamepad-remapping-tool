@@ -1,3 +1,0 @@
-COMMAND_NAME=Bind Gamepad
-COMMAND_TYPE=EXTERNAL
-COMMAND_STR=COMMAND_STR=echo sh %script_dir%/button > /var/exec.flag

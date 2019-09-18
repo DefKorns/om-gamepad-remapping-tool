@@ -19,219 +19,176 @@ source /etc/preinit
 script_init
 #
 modtitle="inputs"
-title="Gamepad Remapping"
+omTitle="Gamepad Remapping"
 
 # Options Menu
 optionsMenu="$mountpoint/etc/options_menu"
-omCommands="$optionsMenu/commands"
-omScripts="$optionsMenu/scripts"
 omMod="$optionsMenu/$modtitle"
 omModCommands="$omMod/commands"
 omModScripts="$omMod/scripts"
 omModAssets="$omMod/assets"
-omModSpacer="$omModCommands/c0000_separator"
+gp_script="$omModScripts/gamepadremapper"
+p_file="$mountpoint/etc/preinit.d/p8000_gamepadremapper"
 
 template="180000004e696e74656e646f20436c00,Nintendo Clovercon,leftx:LX,lefty:LY,rightx:RX,righty:RY,dpup:UP,dpdown:DOWN,dpleft:LEFT,dpright:RIGHT,a:CIRCLE,b:EXE,y:SQUARE,x:TRIANGLE,back:SELECT,start:START,guide:HOME,leftshoulder:L1,leftshoulder:L3,rightshoulder:R1,rightshoulder:R3,lefttrigger:L2,righttrigger:R2,platform:Linux,"
 ctrl_p1="/dev/input/by-path/platform-twi.1-event-joystick"
-ctrl_p2="/dev/input/by-path/platform-twi.2-event-joystick"
 default_db="$omModScripts/om_defaultDb.txt"
-ctrl_db="$omModScripts/gamecontrollerdb.txt"
-disableBindP2="$omModCommands/_BindP2"
-enableBindP2="$omModCommands/c0000_BindP2"
-disableBindAll="$omModCommands/_BindAll"
-enableBindAll="$omModCommands/c0000_BindAll"
-# multiplayer="0"
+sdl2Scripts="$omModAssets/sdl2"
+ctrl_db="$sdl2Scripts/gamecontrollerdb.txt"
 
 # FUNCTIONS
 rename() {
-	[ -f "$1" ] && mv "$1" "$2"
+    [ -f "$1" ] && mv "$1" "$2"
 }
 
 remove() {
-	[ -f "$1" ] && rm -rf "$1"
-}
-
-link() {
-	[ -f "$1" ] && ln -sf "$1" "$2"
+    [ -f "$1" ] && rm -rf "$1"
 }
 
 copier() {
-	[ -f "$1" ] && cp -r "$1" "$2"
+    [ -f "$1" ] && cp -r "$1" "$2"
 }
 
 toggleMenu() {
-	if [ -e "$ctrl_p2" ]; then
-		rename "$disableBindP2" "$enableBindP2"
-		[ -e "$ctrl_p1" ] && rename "$disableBindAll" "$enableBindAll"
-	else
-		# waits to Controller 1 to be connected before disable
-		while [ ! -e "$ctrl_p1" ]; do usleep 100; done
-		rename "$enableBindP2" "$disableBindP2"
-		rename "$enableBindAll" "$disableBindAll"
-	fi
+    while [ ! -e "$ctrl_p1" ]; do usleep 100; done
+}
+
+uninstall() {
+    [ -d "$sdl2Scripts" ] && rm -fr "$sdl2Scripts"
+    remove "$p_file"
 }
 
 createDb() {
-	sed "176c$template" "$default_db" >"$ctrl_db"
+    [ ! -d "$sdl2Scripts" ] && mkdir -p "$sdl2Scripts"
+    sed "176c$template" "$default_db" >"$ctrl_db"
 }
 
-p1Selector() {
-	echo "Player 1"
-	input=$(cat "$ctrl_p1" | hexdump -v -e '1/1 "%02x"' -n 32)
-	buttonInput
-}
-p2Selector() {
-	echo "Player 2"
-	input=$(cat "$ctrl_p2" | hexdump -v -e '1/1 "%02x"' -n 32)
-	buttonInput
+playerInput() {
+    # input=$(cat "$ctrl_p1" | hexdump -v -e '1/1 "%02x"' -n 32)
+    input=$(hexdump -v -e '1/1 "%02x"' -n 32 <"$ctrl_p1")
+    buttonInput
 }
 
 buttonInput() {
-	case "${input:20:4}" in
-	3001) btn="b1" ;;
-	3101) btn="b0" ;;
-	3301) btn="b2" ;;
-	3401) btn="b3" ;;
-	c202) btn="b13" ;;
-	c302) btn="b14" ;;
-	c002) btn="b11" ;;
-	c102) btn="b12" ;;
-	0200) btn="b4" ;;
-	3601) btn="a2" ;;
-	3801) btn="b7" ;;
-	0500) btn="b5" ;;
-	3701) btn="a5" ;;
-	3901) btn="b7" ;;
-	3a01) btn="b9" ;;
-	3b01) btn="b9" ;;
-	3c01) btn="b10" ;;
-	0000) btn="a0" ;;
-	0100) btn="a1" ;;
-	0300) btn="a3" ;;
-	0400) btn="a4" ;;
-	esac
-	usleep 100000
+    case "${input:20:4}" in
+    3001) btn="b1" ;;
+    3101) btn="b0" ;;
+    3301) btn="b2" ;;
+    3401) btn="b3" ;;
+    c202) btn="b13" ;;
+    c302) btn="b14" ;;
+    c002) btn="b11" ;;
+    c102) btn="b12" ;;
+    0200) btn="b4" ;;
+    3601) btn="a2" ;;
+    3801) btn="b7" ;;
+    0500) btn="b5" ;;
+    3701) btn="a5" ;;
+    3901) btn="b7" ;;
+    3a01) btn="b9" ;;
+    3b01) btn="b9" ;;
+    3c01) btn="b10" ;;
+    0000) btn="a0" ;;
+    0100) btn="a1" ;;
+    0300) btn="a3" ;;
+    0400) btn="a4" ;;
+    esac
+    usleep 100000
+}
+
+generateScript() {
+    remove "$p_file"
+    copier "$gp_script" "$p_file"
+    $optionsMenu/options --commandPath $omModCommands/ --scriptPath $omModScripts --title "$omTitle" &
 }
 
 remapping() {
-	echo "remapping"
-	local multiplayer="0"
-	# while [ "$multiplayer" -lt 2 ]; do
-	while [ "$multiplayer" -le 1 ]; do
-		player="$(p1Selector)"
-		[ "$multiplayer" = "1" ] && player="$(p2Selector)"
-		while [ ! -e $player1 ]; do usleep 100; done
-		echo "press UP"
-		decodepng $omModAssets/up.png >/dev/fb0
-		player
-		sed -r -i "s/UP/${btn}/g;" $ctrl_db
-		echo "press DOWN"
-		decodepng $omModAssets/down.png >/dev/fb0
-		player
-		sed -r -i "s/DOWN/${btn}/g;" $ctrl_db
-		echo "press LEFT"
-		decodepng $omModAssets/left.png >/dev/fb0
-		player
-		sed -r -i "s/LEFT/${btn}/g;" $ctrl_db
-		echo "press RIGHT"
-		decodepng $omModAssets/right.png >/dev/fb0
-		player
-		sed -r -i "s/RIGHT/${btn}/g;" $ctrl_db
-		echo "press A"
-		decodepng $omModAssets/a.png >/dev/fb0
-		player
-		ok="$btn"
-		sed -r -i "s/CIRCLE/${btn}/g;" $ctrl_db
-		echo "press B"
-		decodepng $omModAssets/b.png >/dev/fb0
-		player
-		sed -r -i "s/EXE/${btn}/g;" $ctrl_db
-		echo "press X"
-		decodepng $omModAssets/x.png >/dev/fb0
-		player
-		sed -r -i "s/TRIANGLE/${btn}/g;" $ctrl_db
-		echo "press Y"
-		decodepng $omModAssets/y.png >/dev/fb0
-		player
-		sed -r -i "s/SQUARE/${btn}/g;" $ctrl_db
-		echo "press SELECT"
-		decodepng $omModAssets/select.png >/dev/fb0
-		player
-		sed -r -i "s/SELECT/${btn}/g;" $ctrl_db
-		echo "press START"
-		decodepng $omModAssets/start.png >/dev/fb0
-		player
-		sed -r -i "s/START/${btn}/g;" $ctrl_db
-		echo "press L1"
-		decodepng $omModAssets/l1.png >/dev/fb0
-		player
-		if [ "$btn" == "3601" ]; then
-			sed -r -i "s/L1/${btn}/g;" $ctrl_db
-			sed -r -i "s/L3/b4/g;" $ctrl_db
-		else
-			sed -r -i "s/L1/${btn}/g;" $ctrl_db
-			sed -r -i "s/L3/a2/g;" $ctrl_db
-		fi
-		echo "press R1"
-		decodepng $omModAssets/r1.png >/dev/fb0
-		player
-		if [ "$btn" == "3701" ]; then
-			sed -r -i "s/R1/${btn}/g;" $ctrl_db
-			sed -r -i "s/R3/b5/g;" $ctrl_db
-		else
-			sed -r -i "s/R1/${btn}/g;" $ctrl_db
-			sed -r -i "s/R3/a5/g;" $ctrl_db
-		fi
+    toggleMenu
+    decodepng "$omModAssets/up.png" >/dev/fb0
+    playerInput
+    sed -r -i "s/UP/${btn}/g;" "$ctrl_db"
+    decodepng "$omModAssets/down.png" >/dev/fb0
+    playerInput
+    sed -r -i "s/DOWN/${btn}/g;" "$ctrl_db"
+    decodepng "$omModAssets/left.png" >/dev/fb0
+    playerInput
+    sed -r -i "s/LEFT/${btn}/g;" "$ctrl_db"
+    decodepng "$omModAssets/right.png" >/dev/fb0
+    playerInput
+    sed -r -i "s/RIGHT/${btn}/g;" "$ctrl_db"
+    decodepng "$omModAssets/a.png" >/dev/fb0
+    playerInput
+    ok="$btn"
+    sed -r -i "s/CIRCLE/${btn}/g;" "$ctrl_db"
+    decodepng "$omModAssets/b.png" >/dev/fb0
+    playerInput
+    sed -r -i "s/EXE/${btn}/g;" "$ctrl_db"
+    decodepng "$omModAssets/x.png" >/dev/fb0
+    playerInput
+    sed -r -i "s/TRIANGLE/${btn}/g;" "$ctrl_db"
+    decodepng "$omModAssets/y.png" >/dev/fb0
+    playerInput
+    sed -r -i "s/SQUARE/${btn}/g;" "$ctrl_db"
+    decodepng "$omModAssets/select.png" >/dev/fb0
+    playerInput
+    sed -r -i "s/SELECT/${btn}/g;" "$ctrl_db"
+    decodepng "$omModAssets/start.png" >/dev/fb0
+    playerInput
+    sed -r -i "s/START/${btn}/g;" "$ctrl_db"
+    decodepng "$omModAssets/l1.png" >/dev/fb0
+    playerInput
+    if [ "$btn" == "3601" ]; then
+        sed -r -i "s/L1/${btn}/g;" "$ctrl_db"
+        sed -r -i "s/L3/b4/g;" "$ctrl_db"
+    else
+        sed -r -i "s/L1/${btn}/g;" "$ctrl_db"
+        sed -r -i "s/L3/a2/g;" "$ctrl_db"
+    fi
+    decodepng "$omModAssets/r1.png" >/dev/fb0
+    playerInput
+    if [ "$btn" == "3701" ]; then
+        sed -r -i "s/R1/${btn}/g;" "$ctrl_db"
+        sed -r -i "s/R3/b5/g;" "$ctrl_db"
+    else
+        sed -r -i "s/R1/${btn}/g;" "$ctrl_db"
+        sed -r -i "s/R3/a5/g;" "$ctrl_db"
+    fi
 
-		echo "Do you have more buttons to configure?
-Press A to continue.
-Any other key to cancel"
-		decodepng $omModAssets/continue.png >/dev/fb0
-		player
-		if [ "$btn" == "$ok" ]; then
-			echo "press HOME"
-			decodepng $omModAssets/home.png >/dev/fb0
-			player
-			sed -r -i "s/HOME/${btn}/g;" $ctrl_db
-			echo "press L2"
-			decodepng $omModAssets/l2.png >/dev/fb0
-			player
-			sed -r -i "s/L2/${btn}/g;" $ctrl_db
-			echo "press R2"
-			decodepng $omModAssets/r2.png >/dev/fb0
-			player
-			sed -r -i "s/R2/${btn}/g;" $ctrl_db
-			echo "Press Left Analog X"
-			decodepng $omModAssets/lx.png >/dev/fb0
-			player
-			sed -r -i "s/LX/${btn}/g;" $ctrl_db
-			echo "Press Left Analog Y"
-			decodepng $omModAssets/ly.png >/dev/fb0
-			player
-			sed -r -i "s/LY/${btn}/g;" $ctrl_db
-			echo "Press Right Analog X"
-			decodepng $omModAssets/rx.png >/dev/fb0
-			player
-			sed -r -i "s/RX/${btn}/g;" $ctrl_db
-			echo "Press Right Analog Y"
-			decodepng $omModAssets/ry.png >/dev/fb0
-			player
-			sed -r -i "s/RY/${btn}/g;" $ctrl_db
-		else
-			sed -r -i 's/LX/a0/g;' $ctrl_db
-			sed -r -i 's/LY/a1/g;' $ctrl_db
-			sed -r -i 's/RX/a3/g;' $ctrl_db
-			sed -r -i 's/RY/a4/g;' $ctrl_db
-			sed -r -i 's/HOME/b10/g;' $ctrl_db
-			sed -r -i 's/L2/b6/g;' $ctrl_db
-			sed -r -i 's/R2/b7/g;' $ctrl_db
-		fi
-		decodepng $omModAssets/final.png >/dev/fb0
-		if [ "$btn" != "$ok" ] || [ "$btn" != "3001" ]; then
-			break
-		fi
-		multiplayer=$((multiplayer + 1))
-	done
-	uistart
-	/etc/init.d/S8103OptionsMenu restart
+    decodepng "$omModAssets/continue.png" >/dev/fb0
+    playerInput
+    if [ "$btn" == "$ok" ]; then
+        decodepng "$omModAssets/l2.png" >/dev/fb0
+        playerInput
+        sed -r -i "s/L2/${btn}/g;" "$ctrl_db"
+        decodepng "$omModAssets/r2.png" >/dev/fb0
+        playerInput
+        sed -r -i "s/R2/${btn}/g;" "$ctrl_db"
+        decodepng "$omModAssets/home.png" >/dev/fb0
+        playerInput
+        sed -r -i "s/HOME/${btn}/g;" "$ctrl_db"
+        decodepng "$omModAssets/ly.png" >/dev/fb0
+        playerInput
+        sed -r -i "s/LY/${btn}/g;" "$ctrl_db"
+        decodepng "$omModAssets/lx.png" >/dev/fb0
+        playerInput
+        sed -r -i "s/LX/${btn}/g;" "$ctrl_db"
+        decodepng "$omModAssets/ry.png" >/dev/fb0
+        playerInput
+        sed -r -i "s/RY/${btn}/g;" "$ctrl_db"
+        decodepng "$omModAssets/rx.png" >/dev/fb0
+        playerInput
+        sed -r -i "s/RX/${btn}/g;" "$ctrl_db"
+        decodepng "$omModAssets/final-full.png" >/dev/fb0
+    else
+        sed -r -i 's/LX/a0/g;' "$ctrl_db"
+        sed -r -i 's/LY/a1/g;' "$ctrl_db"
+        sed -r -i 's/RX/a3/g;' "$ctrl_db"
+        sed -r -i 's/RY/a4/g;' "$ctrl_db"
+        sed -r -i 's/HOME/b10/g;' "$ctrl_db"
+        sed -r -i 's/L2/b6/g;' "$ctrl_db"
+        sed -r -i 's/R2/b7/g;' "$ctrl_db"
+        decodepng "$omModAssets/final.png" >/dev/fb0
+    fi
+    playerInput
+    generateScript
 }

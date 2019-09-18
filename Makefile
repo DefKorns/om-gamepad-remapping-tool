@@ -1,6 +1,6 @@
 SHELL = /bin/sh
 UNAME = $(shell uname)
-MOD_NAME := Options Menu - Theme Selector
+MOD_NAME := Options Menu - Gamepad Remapper
 MOD_CREATOR := DefKorns
 MOD_CATEGORY := User Interface
 
