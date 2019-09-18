@@ -5,7 +5,7 @@
 Largely based on [advokaten's](https://github.com/advokaten) [Remap-Canoe-Controller](https://github.com/advokaten/Remap-Canoe-Controller), this [Options Menu](https://github.com/CompCom/OptionsMenu/releases/latest) module allows you to edit, through the UI, your controller inputs used in Canoe and Kachikachi.
 
 <img src="https://i.imgur.com/xnunMrS.png" 
-alt="Options Menu - Gamepad Remapping Tool" width="360" height="240" border="10" />
+alt="Options Menu - Gamepad Remapping Tool" width="640" height="360" border="10" />
 
 
 ### **Information:**
