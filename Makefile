@@ -13,8 +13,9 @@ endif
 LAST_TAG = $(shell git describe --tags $(LAST_TAG_COMMIT) )
 TAG_PREFIX = "v"
 GET_VER    = $(shell  git describe --tags $(LAST_TAG_COMMIT) | sed "s/^$(TAG_PREFIX)//")
-MOD_VER  = $(shell [ -f VERSION ] && head VERSION || echo "0.0.1")
-#MOD_VER  = $(shell [ -f VERSION ] && head VERSION || echo $(GET_VER))
+#MOD_VER  = $(shell [ -f VERSION ] && head VERSION || echo "0.0.1")
+MOD_VER  = $(shell [ -f VERSION ] && head VERSION || echo $(GET_VER))
+RSYNC = $(shell rsync -a mod/etc/options_menu/ temp/ --links --delete)
 MAJOR      = $(shell echo $(MOD_VER) | sed "s/^\([0-9]*\).*/\1/")
 MINOR      = $(shell echo $(MOD_VER) | sed "s/[0-9]*\.\([0-9]*\).*/\1/")
 PATCH      = $(shell echo $(MOD_VER) | sed "s/[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/")
@@ -28,7 +29,7 @@ NEXT_PATCH_VERSION = $(MAJOR).$(MINOR).$(shell expr $(PATCH) + 1)-b$(BUILD)
 MOD_URL=`git config --get remote.origin.url`
 GIT_COMMIT := $(shell echo "`git rev-parse --short HEAD``git diff-index --quiet HEAD -- || echo '-dirty'`")
 GIT_DIRTY      = $(shell git diff --shortstat 2> /dev/null | tail -n1 )
-MOD_FILENAME   = "om-gamepad-remapping-tool"
+MOD_FILENAME   = $(shell basename `pwd`)
 DEV_DIR=~/Documents/gitlab/$(MOD_FILENAME)
 ifneq (,$(wildcard $(DEV_DIR)/.*))
 
@@ -38,7 +39,8 @@ endif
 
 OUT=$(DEV_DIR)/out
 
-all: hmod tar zip 
+all: hmod tar zip
+	@echo $(NEXT_PATCH_VERSION) > VERSION
 
 hmod: clean
 	mkdir -p out/ temp/
@@ -58,21 +60,19 @@ hmod: clean
 
 	cd temp/; tar -czf $(OUT)/$(MOD_FILENAME)-$(MOD_VER).hmod *
 	rm -r temp/
-	@echo $(NEXT_PATCH_VERSION) > VERSION
+
 	
 tar:
 	mkdir -p out/ temp/
-	$(RSYNC)
+	# $(RSYNC)
 	cd temp/; tar -czf $(OUT)/$(MOD_FILENAME)-$(MOD_VER).tar.gz *
 	rm -r temp/
-	@echo $(NEXT_PATCH_VERSION) > VERSION
 
 zip:
 	mkdir -p out/ temp/
 	#$(RSYNC)
 	cd temp/; zip -r $(OUT)/$(MOD_FILENAME)-$(MOD_VER).zip *
 	rm -r temp/
-	@echo $(NEXT_PATCH_VERSION) > VERSION
 
 fix: hmod tar zip
 	@echo $(NEXT_PATCH_VERSION) > VERSION
