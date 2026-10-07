@@ -29,3 +29,5 @@ GP_CONTROLLER=Controller
 GP_FRONT_PORTS=Vordere Anschlüsse
 GP_USB_NOTICE=Nur dieses USB-Controller-Modell. Es spielt als nächster freier Spieler.
 GP_SAVE_FIRST=Zuerst speichern oder zurücksetzen
+GP_BUTTON=Taste
+GP_AXIS=Achse

@@ -2,6 +2,8 @@
 
 **Requires [my Options Menu fork](https://github.com/DefKorns/OptionsMenu/releases) as a base — not compatible with any other UI.**
 
+![Front ports](https://raw.githubusercontent.com/DefKorns/om-gamepad-remapping-tool/om_version/docs/remapper-front-ports.png)
+
 ## What is it?
 
 Remap the buttons that Canoe and Kachikachi (the console's SNES and NES emulators) see, from the console itself. Map the front ports, or give each USB controller model — a DualShock 4, for example — a mapping of its own.
@@ -15,6 +17,8 @@ Open the Options Menu (hold **L+R** on a SNES/Super Famicom, **B+Down** on a NES
 - **Pick the controller** on the first row: the front ports, or any USB controller by its real name
 - **Save** applies right away, no reboot; **Restore defaults** undoes it
 - **Down+Select** (the Home Combo) and the controller's own Home/PS button take you back to the menu on USB controllers too
+- **Ready-made profiles:** a DualShock 4 works as soon as you plug it in, with the SNES layout (Circle = A, Cross = B, Triangle = X, Square = Y). There's also a profile for the Xbox 360 controller, not tested yet
+- Buttons are shown by their names — Cross, L1, Share, D-Pad Up — instead of raw codes
 
 ## Front ports and USB controllers
 

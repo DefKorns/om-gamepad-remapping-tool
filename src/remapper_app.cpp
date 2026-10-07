@@ -10,6 +10,7 @@
 #include "remapper_app.h"
 #include "menu_navigation.h"
 #include "pad_map.h"
+#include "pad_profiles.h"
 #include "framework/draw_helpers.h"
 #include "framework/powerwatch.h"
 #include "framework/utf8.h"
@@ -182,6 +183,22 @@ void RemapperApp::BuildSideNotice()
     }
 }
 
+std::string RemapperApp::ValueLabel(const std::string & binding) const
+{
+    if(!UsbMode())
+        return FrontBindingLabel(binding);
+    const InputNode & pad = usbPads_[controllerIndex_ - 1];
+    return UsbSourceLabel(pad.vendor, pad.product, binding);
+}
+
+void RemapperApp::LoadUsbMapping()
+{
+    saved_ = GamepadMapping();
+    const std::string path = ActivePadMapPath(usbPads_[controllerIndex_ - 1]);
+    if(!path.empty())
+        LoadPadMap(path, saved_);
+}
+
 void RemapperApp::SelectController(int index)
 {
     usbPads_ = UsbPads(ListInputNodes());
@@ -194,7 +211,7 @@ void RemapperApp::SelectController(int index)
         SetMapperPaused(true);
         rawCapture_.reset(new RawCapture(usbPads_[controllerIndex_ - 1]));
         capture_ = rawCapture_.get();
-        LoadPadMap(PadMapPath(usbPads_[controllerIndex_ - 1]), saved_);
+        LoadUsbMapping();
     }
     else
     {
@@ -222,7 +239,7 @@ void RemapperApp::RefreshValues()
     {
         const std::string value = mapping_.Get(t.field);
         const Color color = value != saved_.Get(t.field) ? UiTheme::Accent : UiTheme::TextDim;
-        values_.push_back(Texture(value.empty() ? "-" : value, RowGlyphSize, renderer_, 0, 0, false, ToAbgr(color), true));
+        values_.push_back(Texture(value.empty() ? "-" : ValueLabel(value), RowGlyphSize, renderer_, 0, 0, false, ToAbgr(color), true));
     }
     const Color saveColor = mapping_ != saved_ ? UiTheme::Text : UiTheme::TextDim;
     rows_[SaveRowIndex].label = Texture(Translate("GP_SAVE"), RowGlyphSize, renderer_, UiTheme::RowTextX, 0, false, ToAbgr(saveColor), true);
@@ -337,7 +354,7 @@ void RemapperApp::HandleCapture()
             binding.pop_back();
         mapping_.Set(field, binding);
         RefreshValues();
-        lastCapture_ = Texture(Translate("GP_LAST") + ": " + binding + " (" + ControllerLabel(capture_->ResultSource()) + ")", PanelSmallSize, renderer_, 0, 0, false, ToAbgr(UiTheme::TextDim), true);
+        lastCapture_ = Texture(Translate("GP_LAST") + ": " + ValueLabel(binding) + " (" + ControllerLabel(capture_->ResultSource()) + ")", PanelSmallSize, renderer_, 0, 0, false, ToAbgr(UiTheme::TextDim), true);
     }
     if(mode_ == Mode::CaptureOne)
     {
@@ -416,7 +433,7 @@ void RemapperApp::Restore()
     if(UsbMode())
     {
         std::remove(PadMapPath(usbPads_[controllerIndex_ - 1]).c_str());
-        saved_ = GamepadMapping();
+        LoadUsbMapping();
         mapping_ = saved_;
         RefreshValues();
         ShowNotice("GP_RESTORED");

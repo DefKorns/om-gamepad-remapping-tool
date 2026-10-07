@@ -63,6 +63,8 @@ private:
     bool UsbMode() const { return controllerIndex_ > 0; }
     std::string ControllerName(int index) const;
     void BuildSideNotice();
+    std::string ValueLabel(const std::string & binding) const;
+    void LoadUsbMapping();
 
     std::string TargetLabel(int target) const;
     void RefreshValues();

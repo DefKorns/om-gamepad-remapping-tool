@@ -29,3 +29,5 @@ GP_CONTROLLER=Manette
 GP_FRONT_PORTS=Ports avant
 GP_USB_NOTICE=Seulement ce modèle de manette USB. Elle joue comme le prochain joueur libre.
 GP_SAVE_FIRST=Enregistrez ou restaurez d'abord
+GP_BUTTON=Bouton
+GP_AXIS=Axe

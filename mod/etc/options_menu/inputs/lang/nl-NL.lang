@@ -29,3 +29,5 @@ GP_CONTROLLER=Controller
 GP_FRONT_PORTS=Voorpoorten
 GP_USB_NOTICE=Alleen dit USB-controllermodel. Het speelt als de volgende vrije speler.
 GP_SAVE_FIRST=Eerst opslaan of herstellen
+GP_BUTTON=Knop
+GP_AXIS=As

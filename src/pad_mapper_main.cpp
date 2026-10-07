@@ -63,13 +63,13 @@ namespace
         const std::vector<InputNode> nodes = ListInputNodes();
         for(const InputNode & pad : UsbPads(nodes))
         {
-            const std::string mapPath = PadMapPath(pad);
+            const std::string mapPath = ActivePadMapPath(pad);
             const InputNode * target = CloverconFor(pad, nodes);
-            if(!target || !Exists(mapPath))
+            if(!target || mapPath.empty())
                 continue;
             plan.pads.push_back(pad);
             plan.targets.push_back(*target);
-            plan.signature += pad.node + ">" + target->node + "@" + std::to_string(ModifiedTime(mapPath)) + ";";
+            plan.signature += pad.node + ">" + target->node + "@" + mapPath + ":" + std::to_string(ModifiedTime(mapPath)) + ";";
         }
         if(!plan.pads.empty())
             plan.signature += "db@" + std::to_string(ModifiedTime(ActiveDbPath));
@@ -100,7 +100,7 @@ int main()
                 for(size_t i = 0; i < plan.pads.size(); ++i)
                 {
                     GamepadMapping padMap;
-                    if(!LoadPadMap(PadMapPath(plan.pads[i]), padMap))
+                    if(!LoadPadMap(ActivePadMapPath(plan.pads[i]), padMap))
                         continue;
                     std::unique_ptr<PadTranslator> translator(new PadTranslator(plan.pads[i], plan.targets[i], padMap, frontMap));
                     if(translator->Ok())

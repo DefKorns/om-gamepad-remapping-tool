@@ -14,11 +14,39 @@
 #include <cstdio>
 #include <fstream>
 
+namespace
+{
+    std::string MapFileName(const InputNode & pad)
+    {
+        char name[32];
+        std::snprintf(name, sizeof(name), "%04x_%04x.map", pad.vendor, pad.product);
+        return name;
+    }
+
+    bool Exists(const std::string & path)
+    {
+        struct stat info;
+        return stat(path.c_str(), &info) == 0;
+    }
+}
+
 std::string PadMapPath(const InputNode & pad)
 {
-    char name[32];
-    std::snprintf(name, sizeof(name), "%04x_%04x.map", pad.vendor, pad.product);
-    return std::string(PadMapDir) + name;
+    return std::string(PadMapDir) + MapFileName(pad);
+}
+
+std::string PadProfilePath(const InputNode & pad)
+{
+    return std::string(PadProfileDir) + MapFileName(pad);
+}
+
+std::string ActivePadMapPath(const InputNode & pad)
+{
+    if(Exists(PadMapPath(pad)))
+        return PadMapPath(pad);
+    if(Exists(PadProfilePath(pad)))
+        return PadProfilePath(pad);
+    return std::string();
 }
 
 bool LoadPadMap(const std::string & path, GamepadMapping & mapping)

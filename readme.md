@@ -5,6 +5,10 @@
 
 **Requires [my Options Menu fork](https://github.com/DefKorns/OptionsMenu/releases) as a base — not compatible with any other UI.**
 
+| Front ports | A USB controller |
+| --- | --- |
+| ![Front ports](docs/remapper-front-ports.png) | ![USB controller](docs/remapper-usb.png) |
+
 ## What is it?
 
 Remap the buttons that Canoe and Kachikachi (the SNES and NES Classic emulators) see, from the console itself. Map the front ports, or give each USB controller model — a DualShock 4, for example — a mapping of its own.
@@ -18,6 +22,8 @@ The screen is a C++/SDL app (`gamepad_remapper`) built against the vendored Opti
 - **Pick the controller** on the first row: the front ports, or any USB controller by its real name
 - **Save** applies right away, no reboot; **Restore defaults** undoes it
 - **Down+Select** (the Home Combo) and the controller's own Home/PS button take you back to the menu on USB controllers too
+- **Ready-made profiles:** a DualShock 4 works as soon as you plug it in, with the SNES layout (Circle = A, Cross = B, Triangle = X, Square = Y). There's also a profile for the Xbox 360 controller, not tested yet
+- Buttons are shown by their names — Cross, L1, Share, D-Pad Up — instead of raw codes
 - Every Options Menu language
 
 ## Front ports and USB controllers
@@ -42,7 +48,7 @@ Then open the Options Menu (hold **L+R** on a SNES/Super Famicom, **B+Down** on 
 ## How it works
 
 - **Front ports:** the mapping is the `Nintendo Clovercon` line of SDL's `gamecontrollerdb.txt`. Saving writes a copy with that line changed to `/etc/options_menu/inputs/sdl2/` and bind-mounts it over `/etc/sdl2/gamecontrollerdb.txt`, now and at every boot (`/etc/preinit.d/p8000_gamepadremapper`).
-- **USB controllers:** each mapping is `/etc/options_menu/inputs/pads/<vendor>_<product>.map`, one `button=source` line per button. `pad_mapper` (started by `/etc/init.d/S8105PadMapper`) grabs every USB controller that has a map, translates its buttons, hats and axes, and writes them into the virtual controller hakchi created for it, so games keep their player slots.
+- **USB controllers:** each mapping is `/etc/options_menu/inputs/pads/<vendor>_<product>.map`, one `button=source` line per button. Without one, the profile in `/etc/options_menu/inputs/profiles/` is used, and **Restore defaults** goes back to it. `pad_mapper` (started by `/etc/init.d/S8105PadMapper`) grabs every USB controller that has a map, translates its buttons, hats and axes, and writes them into the virtual controller hakchi created for it, so games keep their player slots.
 - Uninstalling unmounts the mapping, stops `pad_mapper` and removes both.
 
 ## Build

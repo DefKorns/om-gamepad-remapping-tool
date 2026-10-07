@@ -29,3 +29,5 @@ GP_CONTROLLER=Comando
 GP_FRONT_PORTS=Portas da frente
 GP_USB_NOTICE=Só este modelo de comando USB. Joga como o próximo jogador livre.
 GP_SAVE_FIRST=Grava ou repõe primeiro
+GP_BUTTON=Botão
+GP_AXIS=Eixo

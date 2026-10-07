@@ -29,3 +29,5 @@ GP_CONTROLLER=Controller
 GP_FRONT_PORTS=Front ports
 GP_USB_NOTICE=Only this USB controller model. It plays as the next free player.
 GP_SAVE_FIRST=Save or restore first
+GP_BUTTON=Button
+GP_AXIS=Axis
