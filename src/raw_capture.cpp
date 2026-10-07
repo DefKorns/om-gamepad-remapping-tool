@@ -64,7 +64,7 @@ float RawCapture::Deviation(int code, int value) const
     const input_absinfo & range = abs_[code];
     if(range.maximum == range.minimum)
         return 0.0f;
-    return static_cast<float>(value - rest_[code]) / static_cast<float>(range.maximum - range.minimum);
+    return 2.0f * static_cast<float>(value - rest_[code]) / static_cast<float>(range.maximum - range.minimum);
 }
 
 void RawCapture::Begin()

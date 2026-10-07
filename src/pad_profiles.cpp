@@ -10,6 +10,8 @@
 #include "pad_profiles.h"
 #include "localization.h"
 
+#include <linux/input.h>
+
 #include <cstdlib>
 #include <map>
 #include <utility>
@@ -28,6 +30,7 @@ namespace
         unsigned int product;
         std::map<int, Name> keys;
         std::map<int, Name> axes;
+        bool axisDpad;
     };
 
     std::string Text(const Name & name)
@@ -94,12 +97,23 @@ namespace
         return names;
     }
 
+    const std::map<int, Name> & PlayStationClassicKeys()
+    {
+        static const std::map<int, Name> names = {
+            { 304, { "Square", false } }, { 305, { "Cross", false } }, { 306, { "Circle", false } }, { 307, { "Triangle", false } },
+            { 308, { "L2", false } }, { 309, { "R2", false } }, { 310, { "L1", false } }, { 311, { "R1", false } },
+            { 312, { "Select", false } }, { 313, { "Start", false } },
+        };
+        return names;
+    }
+
     const Model * FindModel(unsigned int vendor, unsigned int product)
     {
         static const Model models[] = {
-            { 0x054c, 0x09cc, DualShock4Keys(), DualShock4Axes() },
-            { 0x054c, 0x05c4, DualShock4Keys(), DualShock4Axes() },
-            { 0x045e, 0x028e, Xbox360Keys(), Xbox360Axes() },
+            { 0x054c, 0x09cc, DualShock4Keys(), DualShock4Axes(), false },
+            { 0x054c, 0x05c4, DualShock4Keys(), DualShock4Axes(), false },
+            { 0x054c, 0x0cda, PlayStationClassicKeys(), {}, true },
+            { 0x045e, 0x028e, Xbox360Keys(), Xbox360Axes(), false },
         };
         for(const Model & model : models)
             if(model.vendor == vendor && model.product == product)
@@ -123,13 +137,16 @@ namespace
         return sign == '+' ? " +" : sign == '-' ? " -" : "";
     }
 
-    std::string HatLabel(const std::string & source)
+    std::string DirectionLabel(bool horizontal, char sign)
     {
-        const char axis = source[source.size() - 2];
-        const char sign = source.back();
-        if(axis == 'x')
+        if(horizontal)
             return Translate(sign == '-' ? "GP_LEFT" : "GP_RIGHT");
         return Translate(sign == '-' ? "GP_UP" : "GP_DOWN");
+    }
+
+    std::string HatLabel(const std::string & source)
+    {
+        return DirectionLabel(source[source.size() - 2] == 'x', source.back());
     }
 }
 
@@ -156,6 +173,8 @@ std::string UsbSourceLabel(unsigned int vendor, unsigned int product, const std:
     case 'k':
         return Lookup(model ? &model->keys : nullptr, code, "GP_BUTTON");
     case 'a':
+        if(model && model->axisDpad && code <= ABS_Y && (source.back() == '+' || source.back() == '-'))
+            return DirectionLabel(code == ABS_X, source.back());
         return Lookup(model ? &model->axes : nullptr, code, "GP_AXIS") + DirectionMark(source.back());
     case 'h':
         return source.size() >= 4 ? HatLabel(source) : source;

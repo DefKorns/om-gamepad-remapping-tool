@@ -17,7 +17,7 @@ Open the Options Menu (hold **L+R** on a SNES/Super Famicom, **B+Down** on a NES
 - **Pick the controller** on the first row: the front ports, or any USB controller by its real name
 - **Save** applies right away, no reboot; **Restore defaults** undoes it
 - **Down+Select** (the Home Combo) and the controller's own Home/PS button take you back to the menu on USB controllers too
-- **Ready-made profiles:** a DualShock 4 works as soon as you plug it in, with the SNES layout (Circle = A, Cross = B, Triangle = X, Square = Y), and so does the Krom Kumite arcade stick. There's also a profile for the Xbox 360 controller, not tested yet
+- **Ready-made profiles:** a DualShock 4 works as soon as you plug it in, with the SNES layout (Circle = A, Cross = B, Triangle = X, Square = Y). The PlayStation Classic controller, the wired Xbox 360 controller (by label: A = A, B = B, X = Y, Y = X) and the Krom Kumite arcade stick also work out of the box
 - Buttons are shown by their names — Cross, L1, Share, D-Pad Up — instead of raw codes
 
 ## Front ports and USB controllers
