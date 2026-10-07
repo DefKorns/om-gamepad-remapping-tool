@@ -161,7 +161,9 @@ std::string RemapperApp::ControllerName(int index) const
 {
     if(index <= 0 || index > static_cast<int>(usbPads_.size()))
         return Translate("GP_FRONT_PORTS");
-    return usbPads_[index - 1].name;
+    const std::string & name = usbPads_[index - 1].name;
+    const size_t start = name.find_first_not_of(", ");
+    return start == std::string::npos ? name : name.substr(start);
 }
 
 void RemapperApp::SetMapperPaused(bool paused) const

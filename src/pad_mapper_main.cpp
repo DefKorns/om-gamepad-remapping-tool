@@ -84,6 +84,7 @@ int main()
 
     std::vector<std::unique_ptr<PadTranslator>> translators;
     std::string signature;
+    bool rebuild = true;
     auto nextScan = std::chrono::steady_clock::now();
 
     while(running)
@@ -92,8 +93,9 @@ int main()
         {
             nextScan = std::chrono::steady_clock::now() + RescanInterval;
             const Plan plan = BuildPlan();
-            if(plan.signature != signature)
+            if(rebuild || plan.signature != signature)
             {
+                rebuild = false;
                 signature = plan.signature;
                 translators.clear();
                 const GamepadMapping frontMap = LoadActiveMapping(ActiveDbPath);
@@ -123,7 +125,7 @@ int main()
             if(fds[i].revents & POLLIN)
                 translators[i]->Pump();
             else if(fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
-                signature.clear();
+                rebuild = true;
     }
     return 0;
 }
