@@ -9,14 +9,17 @@
 
 #include "remapper_app.h"
 #include "menu_navigation.h"
+#include "pad_map.h"
 #include "framework/draw_helpers.h"
 #include "framework/powerwatch.h"
+#include "framework/utf8.h"
 #include "localization.h"
 
 #include <sys/stat.h>
 
 #include <algorithm>
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
 #include <fstream>
 
@@ -27,16 +30,20 @@ namespace
     constexpr Uint32 CaptureTimeoutMs = 5000;
     constexpr Uint32 NoticeMs = 4000;
     constexpr int RowGlyphSize = 16;
-    constexpr int ActionRowCount = 3;
-    constexpr int SaveRowIndex = 1;
+    constexpr int ActionRowCount = 4;
+    constexpr int ControllerRowIndex = 0;
+    constexpr int SaveRowIndex = 2;
     constexpr int PanelMarginX = 160;
-    constexpr int PanelH = 230;
+    constexpr int PanelH = 250;
     constexpr int PanelPromptSize = 20;
     constexpr int PanelTargetSize = 40;
     constexpr int PanelSmallSize = 16;
     constexpr int PanelPromptY = 40;
     constexpr int PanelTargetY = 100;
     constexpr int PanelProgressY = 145;
+    constexpr int PanelLastCaptureY = 168;
+    constexpr int NoticeFontSize = 14;
+    constexpr int NoticeLinePitch = 20;
     constexpr int PanelTimerBottom = 50;
     constexpr int PanelHintBottom = 25;
     constexpr int TimerBarH = 6;
@@ -46,6 +53,52 @@ namespace
     constexpr int SelectionBorderW = 2;
     constexpr int SelectionPad = 2;
     constexpr int DividerOffset = 3;
+
+    int TextWidth(const std::string & text, int fontSize)
+    {
+        return CanRenderWithTTF(text, fontSize) ? MeasureTTFWidth(text, fontSize) : Utf8Length(text) * fontSize;
+    }
+
+    std::vector<std::string> WrapText(const std::string & text, int fontSize, int maxWidth)
+    {
+        std::vector<std::string> lines;
+        std::string line;
+        size_t start = 0;
+        while(start < text.size())
+        {
+            size_t end = text.find(' ', start);
+            if(end == std::string::npos)
+                end = text.size();
+            const std::string word = text.substr(start, end - start);
+            const std::string candidate = line.empty() ? word : line + " " + word;
+            if(!line.empty() && TextWidth(candidate, fontSize) > maxWidth)
+            {
+                lines.push_back(line);
+                line = word;
+            }
+            else
+                line = candidate;
+            start = end + 1;
+        }
+        if(!line.empty())
+            lines.push_back(line);
+        return lines;
+    }
+
+    std::string ControllerLabel(const std::string & deviceName)
+    {
+        const std::string marker = "controller";
+        const size_t at = deviceName.rfind(marker);
+        if(at == std::string::npos || at + marker.size() >= deviceName.size())
+            return deviceName;
+        return Translate("GP_CONTROLLER") + " " + deviceName.substr(at + marker.size());
+    }
+
+    bool IsAxisField(const std::string & field)
+    {
+        const std::string stock = GamepadMapping::Defaults().Get(field);
+        return !stock.empty() && stock[0] == 'a';
+    }
 
     std::string BaseDbPath()
     {
@@ -62,7 +115,8 @@ RemapperApp::RemapperApp(std::string optionsLocation)
     sdlContext_.reset(new SDL_Context(std::chrono::milliseconds(33), false));
     renderer_ = sdlContext_->renderer;
     controller_.reset(new Controller(1));
-    capture_.reset(new InputCapture());
+    sdlCapture_.reset(new InputCapture());
+    capture_ = sdlCapture_.get();
     SetDrawColor(renderer_, UiTheme::Bg);
 
     gearIcon_ = Texture(optionsLocation_ + UiTheme::AssetGear, renderer_, UiTheme::GearX, UiTheme::GearY);
@@ -80,8 +134,8 @@ RemapperApp::RemapperApp(std::string optionsLocation)
                                         badges_->Make("A", Translate("GP_DISCARD"), UiTheme::BadgeADark, UiTheme::BadgeA),
                                         badges_->Make("B", Translate("GP_STAY"), UiTheme::BadgeBDark, UiTheme::BadgeB)));
 
-    const char * const actionKeys[ActionRowCount] = { "GP_MAP_ALL", "GP_SAVE", "GP_RESTORE" };
-    const RowKind actionKinds[ActionRowCount] = { RowKind::MapAll, RowKind::Save, RowKind::Restore };
+    const char * const actionKeys[ActionRowCount] = { "GP_CONTROLLER", "GP_MAP_ALL", "GP_SAVE", "GP_RESTORE" };
+    const RowKind actionKinds[ActionRowCount] = { RowKind::Controller, RowKind::MapAll, RowKind::Save, RowKind::Restore };
     for(int i = 0; i < ActionRowCount; ++i)
         rows_.push_back(Row{ actionKinds[i], -1, Texture(Translate(actionKeys[i]), RowGlyphSize, renderer_, UiTheme::RowTextX, 0, false, ToAbgr(UiTheme::Text), true) });
     const std::vector<MappingTarget> & targets = MappingTargets();
@@ -94,6 +148,63 @@ RemapperApp::RemapperApp(std::string optionsLocation)
 
     rowPitch_ = std::max(UiTheme::RowPitch, GetTTFLineHeight(RowGlyphSize));
     visibleRows_ = std::max(1, (UiTheme::FooterDividerY - UiTheme::ListBottomMargin - UiTheme::RowFirstY) / rowPitch_);
+    SelectController(0);
+}
+
+RemapperApp::~RemapperApp()
+{
+    SetMapperPaused(false);
+}
+
+std::string RemapperApp::ControllerName(int index) const
+{
+    if(index <= 0 || index > static_cast<int>(usbPads_.size()))
+        return Translate("GP_FRONT_PORTS");
+    return usbPads_[index - 1].name;
+}
+
+void RemapperApp::SetMapperPaused(bool paused) const
+{
+    if(paused)
+        std::ofstream(PadMapperPauseFlag).put('1');
+    else
+        std::remove(PadMapperPauseFlag);
+}
+
+void RemapperApp::BuildSideNotice()
+{
+    sharedNotice_.clear();
+    int noticeY = UiTheme::RowFirstY;
+    for(const std::string & line : WrapText(Translate(UsbMode() ? "GP_USB_NOTICE" : "GP_SHARED_NOTICE"), NoticeFontSize, UiTheme::DetailW))
+    {
+        sharedNotice_.push_back(Texture(line, NoticeFontSize, renderer_, UiTheme::DetailX, noticeY, false, ToAbgr(UiTheme::TextDim), true));
+        noticeY += NoticeLinePitch;
+    }
+}
+
+void RemapperApp::SelectController(int index)
+{
+    usbPads_ = UsbPads(ListInputNodes());
+    const int count = static_cast<int>(usbPads_.size()) + 1;
+    controllerIndex_ = ((index % count) + count) % count;
+    rawCapture_.reset();
+    saved_ = GamepadMapping();
+    if(UsbMode())
+    {
+        SetMapperPaused(true);
+        rawCapture_.reset(new RawCapture(usbPads_[controllerIndex_ - 1]));
+        capture_ = rawCapture_.get();
+        LoadPadMap(PadMapPath(usbPads_[controllerIndex_ - 1]), saved_);
+    }
+    else
+    {
+        SetMapperPaused(false);
+        capture_ = sdlCapture_.get();
+        saved_ = LoadActiveMapping(ActiveDbPath);
+    }
+    mapping_ = saved_;
+    rows_[ControllerRowIndex].label = Texture(Translate("GP_CONTROLLER") + ":  < " + ControllerName(controllerIndex_) + " >", RowGlyphSize, renderer_, UiTheme::RowTextX, 0, false, ToAbgr(UiTheme::Text), true);
+    BuildSideNotice();
     RefreshValues();
 }
 
@@ -143,7 +254,7 @@ RemapperApp::FrameEvent RemapperApp::PollFrameEvents()
     {
         if(event.type == SDL_QUIT)
             return FrameEvent::Quit;
-        capture_->HandleEvent(event);
+        sdlCapture_->HandleEvent(event);
     }
     capture_->Update();
     if(sdlContext_->powerwatch->buttonPress())
@@ -221,8 +332,12 @@ void RemapperApp::HandleCapture()
 
     if(captured)
     {
-        mapping_.Set(MappingTargets()[captureTarget_].field, binding);
+        const std::string & field = MappingTargets()[captureTarget_].field;
+        if(UsbMode() && IsAxisField(field) && !binding.empty() && (binding.back() == '+' || binding.back() == '-'))
+            binding.pop_back();
+        mapping_.Set(field, binding);
         RefreshValues();
+        lastCapture_ = Texture(Translate("GP_LAST") + ": " + binding + " (" + ControllerLabel(capture_->ResultSource()) + ")", PanelSmallSize, renderer_, 0, 0, false, ToAbgr(UiTheme::TextDim), true);
     }
     if(mode_ == Mode::CaptureOne)
     {
@@ -237,7 +352,14 @@ void RemapperApp::Activate(const Row & row)
 {
     switch(row.kind)
     {
+    case RowKind::Controller:
+        if(mapping_ != saved_)
+            ShowNotice("GP_SAVE_FIRST");
+        else
+            SelectController(controllerIndex_ + 1);
+        break;
     case RowKind::MapAll:
+        lastCapture_ = Texture();
         wizardOrder_.clear();
         for(int i = 0; i < static_cast<int>(MappingTargets().size()); ++i)
             if(!MappingTargets()[i].extra)
@@ -253,6 +375,7 @@ void RemapperApp::Activate(const Row & row)
         Restore();
         break;
     case RowKind::Target:
+        lastCapture_ = Texture();
         mode_ = Mode::CaptureOne;
         StartCapture(row.target);
         break;
@@ -263,6 +386,18 @@ void RemapperApp::Save()
 {
     if(mapping_ == saved_)
         return;
+    if(UsbMode())
+    {
+        if(!SavePadMap(PadMapPath(usbPads_[controllerIndex_ - 1]), mapping_))
+        {
+            ShowNotice("GP_SAVE_FAILED");
+            return;
+        }
+        saved_ = mapping_;
+        RefreshValues();
+        ShowNotice("GP_SAVED");
+        return;
+    }
     mkdir((optionsLocation_ + "inputs/sdl2").c_str(), 0755);
     if(!WriteMappingDb(BaseDbPath(), customDbPath_, mapping_))
     {
@@ -278,6 +413,15 @@ void RemapperApp::Save()
 
 void RemapperApp::Restore()
 {
+    if(UsbMode())
+    {
+        std::remove(PadMapPath(usbPads_[controllerIndex_ - 1]).c_str());
+        saved_ = GamepadMapping();
+        mapping_ = saved_;
+        RefreshValues();
+        ShowNotice("GP_RESTORED");
+        return;
+    }
     std::system(("sh " + optionsLocation_ + "inputs/scripts/gamepad_apply restore").c_str());
     saved_ = LoadActiveMapping(ActiveDbPath);
     mapping_ = saved_;
@@ -287,11 +431,13 @@ void RemapperApp::Restore()
 
 void RemapperApp::ExitToMenu() const
 {
+    SetMapperPaused(false);
     std::system(BuildReturnCommand(optionsLocation_).c_str());
 }
 
 void RemapperApp::ResumeUnderlyingUi() const
 {
+    SetMapperPaused(false);
     std::system(("/bin/sh " + optionsLocation_ + "scripts/ResumeUI.sh").c_str());
 }
 
@@ -300,6 +446,13 @@ bool RemapperApp::HandleBrowseInput()
     const int rowCount = static_cast<int>(rows_.size());
     if(controller_->GetButtonStatus(A) || controller_->GetButtonStatus(START))
         Activate(rows_[selected_]);
+    else if(selected_ == ControllerRowIndex && (controller_->HeldRepeat(LEFT) || controller_->HeldRepeat(RIGHT)))
+    {
+        if(mapping_ != saved_)
+            ShowNotice("GP_SAVE_FIRST");
+        else
+            SelectController(controllerIndex_ + (controller_->PeekButtonStatus(LEFT) ? -1 : 1));
+    }
     else if(controller_->HeldRepeat(UP))
         selected_ = (selected_ - 1 + rowCount) % rowCount;
     else if(controller_->HeldRepeat(DOWN))
@@ -331,6 +484,8 @@ void RemapperApp::DrawChrome()
     sectionTitle_.Draw(renderer_);
     if(SDL_GetTicks() < noticeUntil_)
         noticeText_.Draw(renderer_);
+    for(Texture & line : sharedNotice_)
+        line.Draw(renderer_);
 }
 
 void RemapperApp::DrawRows()
@@ -380,6 +535,9 @@ void RemapperApp::DrawCapturePanel()
         Texture progress(std::to_string(wizardStep_ + 1) + " / " + std::to_string(wizardOrder_.size()), PanelSmallSize, renderer_, centerX, panel.y + PanelProgressY, true, ToAbgr(UiTheme::TextDim), true);
         progress.Draw(renderer_);
     }
+    lastCapture_.rect.x = centerX - lastCapture_.rect.w / 2;
+    lastCapture_.rect.y = panel.y + PanelLastCaptureY;
+    lastCapture_.Draw(renderer_);
 
     const Uint32 elapsed = std::min(CaptureTimeoutMs, SDL_GetTicks() - captureStartedAt_);
     const int barW = panel.w - 2 * TimerBarInset;

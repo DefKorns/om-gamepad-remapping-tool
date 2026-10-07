@@ -19,12 +19,21 @@ namespace
     constexpr int AxisRestTolerance = 8000;
     constexpr Uint32 ButtonGraceMs = 120;
     constexpr Uint32 SettleMs = 250;
+    constexpr Uint32 MaxSettleMs = 1500;
 
     bool IsClovercon(int deviceIndex)
     {
         char guid[64];
         SDL_JoystickGetGUIDString(SDL_JoystickGetDeviceGUID(deviceIndex), guid, sizeof(guid));
         return std::strcmp(guid, CloverconGuid) == 0;
+    }
+
+    std::vector<Sint16> AxisPositions(SDL_Joystick * joystick)
+    {
+        std::vector<Sint16> positions;
+        for(int i = 0; i < SDL_JoystickNumAxes(joystick); ++i)
+            positions.push_back(SDL_JoystickGetAxis(joystick, i));
+        return positions;
     }
 }
 
@@ -37,26 +46,37 @@ InputCapture::InputCapture()
 
 InputCapture::~InputCapture()
 {
-    CloseDevice();
+    for(auto & pad : pads_)
+        SDL_JoystickClose(pad.second.joystick);
+    pads_.clear();
     SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 }
 
 void InputCapture::OpenDevice(int deviceIndex)
 {
-    if(joystick_ || !IsClovercon(deviceIndex))
+    if(!IsClovercon(deviceIndex))
         return;
-    joystick_ = SDL_JoystickOpen(deviceIndex);
-    if(joystick_)
-        instance_ = SDL_JoystickInstanceID(joystick_);
+    SDL_Joystick * joystick = SDL_JoystickOpen(deviceIndex);
+    if(!joystick)
+        return;
+    const SDL_JoystickID instance = SDL_JoystickInstanceID(joystick);
+    if(pads_.count(instance))
+    {
+        SDL_JoystickClose(joystick);
+        return;
+    }
+    pads_[instance] = Pad{ joystick, AxisPositions(joystick) };
 }
 
-void InputCapture::CloseDevice()
+void InputCapture::CloseDevice(SDL_JoystickID instance)
 {
-    if(joystick_)
-        SDL_JoystickClose(joystick_);
-    joystick_ = nullptr;
-    instance_ = -1;
-    state_ = State::Idle;
+    const auto pad = pads_.find(instance);
+    if(pad == pads_.end())
+        return;
+    SDL_JoystickClose(pad->second.joystick);
+    pads_.erase(pad);
+    if(pads_.empty())
+        state_ = State::Idle;
 }
 
 void InputCapture::HandleEvent(const SDL_Event & event)
@@ -67,34 +87,41 @@ void InputCapture::HandleEvent(const SDL_Event & event)
         OpenDevice(event.jdevice.which);
         return;
     case SDL_JOYDEVICEREMOVED:
-        if(event.jdevice.which == instance_)
-            CloseDevice();
+        CloseDevice(event.jdevice.which);
         return;
     default:
         break;
     }
-    if(state_ != State::Waiting || !joystick_)
+    if(state_ != State::Waiting)
         return;
 
-    if(event.type == SDL_JOYBUTTONDOWN && event.jbutton.which == instance_)
-        Accept("b" + std::to_string(event.jbutton.button));
-    else if(event.type == SDL_JOYHATMOTION && event.jhat.which == instance_ && event.jhat.value != SDL_HAT_CENTERED)
-        Accept("h" + std::to_string(event.jhat.hat) + "." + std::to_string(event.jhat.value));
-    else if(event.type == SDL_JOYAXISMOTION && event.jaxis.which == instance_ && pendingAxis_.empty()
-            && event.jaxis.axis < axisRest_.size() && std::abs(event.jaxis.value - axisRest_[event.jaxis.axis]) > AxisThreshold)
+    if(event.type == SDL_JOYBUTTONDOWN && pads_.count(event.jbutton.which))
+        Accept("b" + std::to_string(event.jbutton.button), event.jbutton.which);
+    else if(event.type == SDL_JOYHATMOTION && pads_.count(event.jhat.which) && event.jhat.value != SDL_HAT_CENTERED)
+        Accept("h" + std::to_string(event.jhat.hat) + "." + std::to_string(event.jhat.value), event.jhat.which);
+    else if(event.type == SDL_JOYAXISMOTION && pendingAxis_.empty())
     {
-        pendingAxis_ = "a" + std::to_string(event.jaxis.axis);
-        pendingAxisAt_ = SDL_GetTicks();
+        const auto pad = pads_.find(event.jaxis.which);
+        if(pad == pads_.end() || event.jaxis.axis >= pad->second.axisRest.size())
+            return;
+        if(std::abs(event.jaxis.value - pad->second.axisRest[event.jaxis.axis]) > AxisThreshold)
+        {
+            pendingAxis_ = "a" + std::to_string(event.jaxis.axis);
+            pendingAxisPad_ = event.jaxis.which;
+            pendingAxisAt_ = SDL_GetTicks();
+        }
     }
 }
 
 void InputCapture::Update()
 {
     if(state_ == State::Waiting && !pendingAxis_.empty() && SDL_GetTicks() - pendingAxisAt_ >= ButtonGraceMs)
-        Accept(pendingAxis_);
+        Accept(pendingAxis_, pendingAxisPad_);
     if(state_ != State::Settling)
         return;
-    if(!AtRest())
+    if(SDL_GetTicks() - acceptedAt_ >= MaxSettleMs)
+        state_ = State::Idle;
+    else if(!AtRest())
         restSince_ = 0;
     else if(restSince_ == 0)
         restSince_ = SDL_GetTicks();
@@ -106,11 +133,10 @@ void InputCapture::Begin()
 {
     result_.clear();
     pendingAxis_.clear();
-    axisRest_.clear();
-    if(!joystick_)
+    if(pads_.empty())
         return;
-    for(int i = 0; i < SDL_JoystickNumAxes(joystick_); ++i)
-        axisRest_.push_back(SDL_JoystickGetAxis(joystick_, i));
+    for(auto & pad : pads_)
+        pad.second.axisRest = AxisPositions(pad.second.joystick);
     state_ = State::Waiting;
 }
 
@@ -120,27 +146,33 @@ void InputCapture::Cancel()
     state_ = State::Idle;
 }
 
-void InputCapture::Accept(const std::string & binding)
+void InputCapture::Accept(const std::string & binding, SDL_JoystickID instance)
 {
+    const auto pad = pads_.find(instance);
+    const char * name = pad == pads_.end() ? nullptr : SDL_JoystickName(pad->second.joystick);
+    resultSource_ = name ? name : "";
     result_ = binding;
     pendingAxis_.clear();
     restSince_ = 0;
+    acceptedAt_ = SDL_GetTicks();
     state_ = State::Settling;
 }
 
 bool InputCapture::AtRest() const
 {
-    if(!joystick_)
-        return true;
-    for(int i = 0; i < SDL_JoystickNumButtons(joystick_); ++i)
-        if(SDL_JoystickGetButton(joystick_, i))
-            return false;
-    for(int i = 0; i < SDL_JoystickNumHats(joystick_); ++i)
-        if(SDL_JoystickGetHat(joystick_, i) != SDL_HAT_CENTERED)
-            return false;
-    for(size_t i = 0; i < axisRest_.size(); ++i)
-        if(std::abs(SDL_JoystickGetAxis(joystick_, static_cast<int>(i)) - axisRest_[i]) > AxisRestTolerance)
-            return false;
+    for(const auto & entry : pads_)
+    {
+        const Pad & pad = entry.second;
+        for(int i = 0; i < SDL_JoystickNumButtons(pad.joystick); ++i)
+            if(SDL_JoystickGetButton(pad.joystick, i))
+                return false;
+        for(int i = 0; i < SDL_JoystickNumHats(pad.joystick); ++i)
+            if(SDL_JoystickGetHat(pad.joystick, i) != SDL_HAT_CENTERED)
+                return false;
+        for(size_t i = 0; i < pad.axisRest.size(); ++i)
+            if(std::abs(SDL_JoystickGetAxis(pad.joystick, static_cast<int>(i)) - pad.axisRest[i]) > AxisRestTolerance)
+                return false;
+    }
     return true;
 }
 

@@ -17,6 +17,9 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+killall pad_mapper 2>/dev/null
+rm -f /tmp/pad_mapper.pause
+
 sdl_dir="/etc/sdl2"
 sdl_db="$sdl_dir/gamecontrollerdb.txt"
 

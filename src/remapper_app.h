@@ -12,6 +12,8 @@
 
 #include "gamepad_mapping.h"
 #include "input_capture.h"
+#include "input_nodes.h"
+#include "raw_capture.h"
 #include "framework/badge.h"
 #include "framework/controller.h"
 #include "framework/dialog.h"
@@ -25,10 +27,13 @@ class RemapperApp
 {
 public:
     explicit RemapperApp(std::string optionsLocation);
+    ~RemapperApp();
+    RemapperApp(const RemapperApp &) = delete;
+    RemapperApp & operator=(const RemapperApp &) = delete;
     int Run();
 
 private:
-    enum class RowKind { MapAll, Save, Restore, Target };
+    enum class RowKind { Controller, MapAll, Save, Restore, Target };
     enum class Mode { Browse, CaptureOne, Wizard, ExtrasGate, WizardExtras, ConfirmExit };
     enum class FrameEvent { Continue, Quit, PowerButtonPressed };
 
@@ -53,6 +58,11 @@ private:
     void ExitToMenu() const;
     void ResumeUnderlyingUi() const;
     void ShowNotice(const std::string & key);
+    void SelectController(int index);
+    void SetMapperPaused(bool paused) const;
+    bool UsbMode() const { return controllerIndex_ > 0; }
+    std::string ControllerName(int index) const;
+    void BuildSideNotice();
 
     std::string TargetLabel(int target) const;
     void RefreshValues();
@@ -67,7 +77,11 @@ private:
     std::unique_ptr<SDL_Context> sdlContext_;
     SDL_Renderer * renderer_ = nullptr;
     std::unique_ptr<Controller> controller_;
-    std::unique_ptr<InputCapture> capture_;
+    std::unique_ptr<InputCapture> sdlCapture_;
+    std::unique_ptr<RawCapture> rawCapture_;
+    CaptureSource * capture_ = nullptr;
+    std::vector<InputNode> usbPads_;
+    int controllerIndex_ = 0;
 
     GamepadMapping saved_;
     GamepadMapping mapping_;
@@ -85,7 +99,8 @@ private:
     Uint32 captureStartedAt_ = 0;
     Uint32 noticeUntil_ = 0;
 
-    Texture gearIcon_, appTitleText_, appVersionText_, sectionTitle_, creditText_, noticeText_;
+    Texture gearIcon_, appTitleText_, appVersionText_, sectionTitle_, creditText_, noticeText_, lastCapture_;
+    std::vector<Texture> sharedNotice_;
     std::unique_ptr<BadgePainter> badges_;
     std::unique_ptr<ConfirmDialog> exitDialog_;
     Badge badgeA_, badgeB_;

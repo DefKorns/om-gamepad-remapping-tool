@@ -33,6 +33,7 @@ public:
     std::string Get(const std::string & field) const;
     void Set(const std::string & field, const std::string & binding);
     std::string ToLine() const;
+    const std::vector<std::pair<std::string, std::string>> & Fields() const { return fields_; }
     bool operator==(const GamepadMapping & other) const;
     bool operator!=(const GamepadMapping & other) const { return !(*this == other); }
 
