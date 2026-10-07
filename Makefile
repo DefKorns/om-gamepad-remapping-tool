@@ -1,131 +1,59 @@
-SHELL = /bin/sh
-UNAME = $(shell uname)
-MOD_NAME := Options Menu - Gamepad Remapper
-MOD_CREATOR := DefKorns
-MOD_CATEGORY := User Interface
+MOD_ID       := om-gamepad-remapping-tool
+MOD_NAME     := Options Menu - Gamepad Remapping Tool
+MOD_CATEGORY := Options Menu - Addons
+MOD_DEPS     := mod/etc/options_menu/inputs/gamepad_remapper mod/etc/options_menu/inputs/pad_mapper
 
-LAST_TAG_COMMIT = $(shell git rev-list --tags --max-count=1)
-LAST_TAG = $(shell git describe --tags $(LAST_TAG_COMMIT) )
-TAG_PREFIX = "v"
-GET_VER    = $(shell  git describe --tags $(LAST_TAG_COMMIT) | sed "s/^$(TAG_PREFIX)//")
-#MOD_VER  = $(shell [ -f VERSION ] && head VERSION || echo "0.0.1")
-MOD_VER  = $(shell [ -f VERSION ] && head VERSION || echo $(GET_VER))
-MAJOR      = $(shell echo $(MOD_VER) | sed "s/^\([0-9]*\).*/\1/")
-MINOR      = $(shell echo $(MOD_VER) | sed "s/[0-9]*\.\([0-9]*\).*/\1/")
-PATCH      = $(shell echo $(MOD_VER) | sed "s/[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/")
-
-# total number of commits
-BUILD      = $(shell git log --oneline | wc -l | sed -e "s/[ \t]*//g")
-NEXT_MAJOR_VERSION = $(shell expr $(MAJOR) + 1).0.0
-NEXT_MINOR_VERSION = $(MAJOR).$(shell expr $(MINOR) + 1).0-b$(BUILD)
-NEXT_PATCH_VERSION = $(MAJOR).$(MINOR).$(shell expr $(PATCH) + 1)-b$(BUILD)
-
-MOD_URL=`git config --get remote.origin.url`
-GIT_COMMIT := $(shell echo "`git rev-parse --short HEAD``git diff-index --quiet HEAD -- || echo '-dirty'`")
-GIT_DIRTY      = $(shell git diff --shortstat 2> /dev/null | tail -n1 )
-RSYNC = $(shell rsync -a mod/etc/options_menu/ temp/ --links --delete)
-MOD_FILENAME   = $(shell basename `pwd`)
-DEV_DIR=~/Documents/gitlab/$(MOD_FILENAME)
-ifneq (,$(wildcard $(DEV_DIR)/.*))
-	# LANGUAGE=$(DEV_DIR)/modules/language_pack/language
-	# LOCALIZATION=$(DEV_DIR)/modules/language_pack/localization
-	# PATCHES=$(DEV_DIR)/modules/patches
+FRAMEWORK_DIR = vendor/OptionsMenu/src/framework
+VENDOR_SRC_DIR = vendor/OptionsMenu/src
+CXX = g++
+STRIP = strip
+ifdef CROSS_PREFIX
+PKG_CONFIG_LIBDIR = /usr/lib/arm-linux-gnueabihf/pkgconfig
+SDL_CFLAGS = -I/usr/include/arm-linux-gnueabihf $(shell PKG_CONFIG_LIBDIR=$(PKG_CONFIG_LIBDIR) pkg-config --cflags sdl2 SDL2_ttf libpng)
+SDL_LIBS = $(shell PKG_CONFIG_LIBDIR=$(PKG_CONFIG_LIBDIR) pkg-config --libs sdl2 SDL2_ttf libpng)
+LDFLAGS = -Wl,--allow-shlib-undefined
 else
-	DEV_DIR=~/Documents/_projects/hmods/$(MOD_FILENAME)
-	# LANGUAGE=$(DEV_DIR)/modules/language_pack/language
-	# LOCALIZATION=$(DEV_DIR)/modules/language_pack/localization
-	# PATCHES=$(DEV_DIR)/modules/patches
+SDL_CFLAGS = $(shell sdl2-config --cflags) $(shell pkg-config --cflags SDL2_ttf)
+SDL_LIBS = $(shell sdl2-config --libs) $(shell pkg-config --libs SDL2_ttf) -lpng
+LDFLAGS =
 endif
+CXXFLAGS = -std=c++11 -Os -Wall -I$(VENDOR_SRC_DIR) $(SDL_CFLAGS) -DMOD_VERSION=\"v$(MOD_VER)\"
+LDLIBS = $(SDL_LIBS)
+SOURCES = src/main.cpp src/gamepad_mapping.cpp src/input_capture.cpp src/input_nodes.cpp src/pad_map.cpp src/pad_profiles.cpp src/raw_capture.cpp src/menu_navigation.cpp src/remapper_app.cpp \
+	$(VENDOR_SRC_DIR)/localization.cpp $(FRAMEWORK_DIR)/sdl_context.cpp $(FRAMEWORK_DIR)/texture.cpp \
+	$(FRAMEWORK_DIR)/controller.cpp $(FRAMEWORK_DIR)/powerwatch.cpp $(FRAMEWORK_DIR)/draw_helpers.cpp \
+	$(FRAMEWORK_DIR)/utf8.cpp $(FRAMEWORK_DIR)/font8x8_lookup.cpp $(FRAMEWORK_DIR)/uitheme.cpp $(FRAMEWORK_DIR)/badge.cpp $(FRAMEWORK_DIR)/dialog.cpp
+OBJECTS = $(SOURCES:.cpp=.o)
+MAPPER_SOURCES = src/pad_mapper_main.cpp src/pad_translator.cpp src/pad_map.cpp src/input_nodes.cpp src/gamepad_mapping.cpp
+MAPPER_OBJECTS = $(MAPPER_SOURCES:.cpp=.o)
+DEPDIR = .deps
 
-OUT=$(DEV_DIR)/out
+all: hmod
 
-all: hmod tar zip customlang localization patches
-deploy: customlang localization patches upload
+compile: $(MOD_DEPS)
 
-hmod: clean
-	mkdir -p out/ temp/
-	rsync -a mod/ temp/ --links --delete
+mod/etc/options_menu/inputs/gamepad_remapper: $(OBJECTS)
+	mkdir -p $(@D)
+	$(CROSS_PREFIX)$(CXX) $(OBJECTS) $(LDLIBS) $(LDFLAGS) -Wl,-rpath,/etc/options_menu/lib -o $@
+	$(CROSS_PREFIX)$(STRIP) $@
 
-	printf "%s\n" \
-	"---" \
-	"Name: $(MOD_NAME)" \
-	"Creator: $(MOD_CREATOR)" \
-	"Category: $(MOD_CATEGORY)" \
-	"Version: $(MOD_VER)" \
-	"Built on: $(shell date +"%A, %d %b %Y - %T")" \
-	"Git commit: $(GIT_COMMIT)" \
-	"---" > temp/readme.md
-	
-	sed 1d mod/readme.md >> temp/readme.md
+mod/etc/options_menu/inputs/pad_mapper: $(MAPPER_OBJECTS)
+	mkdir -p $(@D)
+	$(CROSS_PREFIX)$(CXX) $(MAPPER_OBJECTS) -o $@
+	$(CROSS_PREFIX)$(STRIP) $@
 
-	cd temp/; tar -czf $(OUT)/$(MOD_FILENAME)-$(MOD_VER).hmod *
-	rm -r temp/
-	@echo $(NEXT_PATCH_VERSION) > VERSION
-	
-tar:
-	mkdir -p out/ temp/
-	$(RSYNC)
-	cd temp/; tar -czf $(OUT)/$(MOD_FILENAME)-$(MOD_VER).tar.gz *
-	rm -r temp/
-	@echo $(NEXT_PATCH_VERSION) > VERSION
+%.o: %.cpp
+	@mkdir -p $(DEPDIR)
+	$(CROSS_PREFIX)$(CXX) $(CXXFLAGS) -MMD -MP -MF $(DEPDIR)/$(subst /,_,$*).d -c $< -o $@
 
-zip:
-	mkdir -p out/ temp/
-	#$(RSYNC)
-	cd temp/; zip -r $(OUT)/$(MOD_FILENAME)-$(MOD_VER).zip *
-	rm -r temp/
-	@echo $(NEXT_PATCH_VERSION) > VERSION
-
-fix: hmod tar zip
-	@echo $(NEXT_PATCH_VERSION) > VERSION
-
-update: fix
-	@echo $(NEXT_MINOR_VERSION) > VERSION
-
-upgrade: update
-	@echo $(NEXT_MAJOR_VERSION) > VERSION
-
-# customlang:
-# 	@if [ ! -d $(OUT)/customlangs ]; then mkdir -p $(OUT)/customlangs temp/; fi
-# 	find $(LANGUAGE)/. -mindepth 1 -maxdepth 1 -type d | xargs -n 1 basename | while IFS= read -r system; do \
-# 	find $(LANGUAGE)/$$system/. -mindepth 1 -maxdepth 1 -type d | xargs -n 1 basename | while IFS= read -r country; do \
-# 	rsync -a $(LANGUAGE)/$$system/$$country/ temp/ --links --delete ; \
-# 	cd temp/; tar -czf $(OUT)/customlangs/$$system-$$country.tar.gz *; \
-# 	cd .. && rm -r temp/ ; \
-# 	done \
-# 	done
-
-# localization:
-# 	find $(LOCALIZATION)/. -mindepth 1 -maxdepth 1 -type d | xargs -n 1 basename | while IFS= read -r console; do \
-# 	cd $(LOCALIZATION)/"$$console" ; \
-# 	tar -czf $(OUT)/"$$console"-localization.tar.gz * ;\
-# 	done
-
-# patches:
-# 	@if [ ! -d $(OUT) ]; then mkdir -p $(OUT); fi
-# 	find $(PATCHES)/. -mindepth 1 -maxdepth 1 -type d | xargs -n 1 basename | while IFS= read -r console; do \
-# 	cd $(PATCHES)/"$$console" ; \
-# 	tar -czf $(OUT)/"$$console"-patches.tar.gz * ;\
-# 	done
-
-upload:
-	rm -f $(OUT)/$(MOD_FILENAME).*
-	rsync -e ssh --progress --exclude 'rsync*' --exclude 'src' -avzzp out/* defkorns@hakchicloud.com:/var/www/html/Hakchi_Themes/options_menu
-
-info:
-	@echo "Mod Dir: $(MOD_FILENAME)"
-	@echo "Current version: $(MOD_VER)"
-	@echo "Last tag: $(LAST_TAG)"
-	@echo "$(shell git rev-list $(LAST_TAG).. --count) commit(s) since last tag"
-	@echo "Build: $(BUILD) (total number of commits)"
-	@echo "next major version: $(NEXT_MAJOR_VERSION)"
-	@echo "next minor version: $(NEXT_MINOR_VERSION)"
-	@echo "next patch version: $(NEXT_PATCH_VERSION)"
-	# @echo "Language: $(LANGUAGE)"
-	# @echo "Localization: $(LOCALIZATION)"
-	# @echo "Patches: $(PATCHES)"
+-include $(wildcard $(DEPDIR)/*.d)
 
 clean:
-	-rm -rf out/ temp/
+	find . -name "*.o" -type f -not -path "./toolchain/*" -delete
+	rm -rf $(DEPDIR)
+	rm -f $(MOD_DEPS)
+	rm -rf out/
 
-.PHONY: clean
+include hmod-build/hmod.mk
+
+.PHONY: all compile clean
