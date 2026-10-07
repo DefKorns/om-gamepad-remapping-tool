@@ -1,26 +1,39 @@
-**This hmod is to use only with [CompCom's](https://github.com/CompCom) Options Menu.**
+# Options Menu - Gamepad Remapping Tool
 
-### **What is it?**
-Based on [advokaten's](https://github.com/advokaten) [Remap-Canoe-Controller](https://github.com/advokaten/Remap-Canoe-Controller), this [Options Menu](https://github.com/CompCom/OptionsMenu/releases/latest) module allows you to edit, through the UI, your controller inputs used in Canoe and Kachikachi.
+**Requires [my Options Menu fork](https://github.com/DefKorns/OptionsMenu/releases) as a base — not compatible with any other UI.**
 
-<img src="https://i.imgur.com/xnunMrS.png" 
-alt="Options Menu - Gamepad Remapping Tool" width="522" height="294" />
+## What is it?
 
+Remap the buttons that Canoe and Kachikachi (the console's SNES and NES emulators) see, from the console itself. Map the front ports, or give each USB controller model — a DualShock 4, for example — a mapping of its own.
 
-### **Information:**
+Open the Options Menu (hold **L+R** on a SNES/Super Famicom, **B+Down** on a NES/Famicom) and go to **Advanced Options → Controller → Gamepad Remapping**.
 
-- Any controller connected to the port(s) at the front of the Mini, will be recognized as a Nintendo Clovercon controller, including controllers connected via bluetooth receivers such as the `8bitdo Retro Receiver`.
+## Features
 
-- Updated current database with an additional 60 controller mappings for future purpose.
+- **Every button in one list** with what it's mapped to; select a row and press the new button to remap just that one
+- **Map all buttons** walks through them one by one — wait 5 seconds to keep the current one — and then offers ZL, ZR, Home and the analog sticks
+- **Pick the controller** on the first row: the front ports, or any USB controller by its real name
+- **Save** applies right away, no reboot; **Restore defaults** undoes it
+- **Down+Select** (the Home Combo) and the controller's own Home/PS button take you back to the menu on USB controllers too
 
-- DS4 Controllers have an issue with the PS button due to bad firmaware on `8bitdo Retro Receiver`, when asked to insert the Home button please wait for 3 seconds and it will proceed to the next button.
+## Front ports and USB controllers
 
+- **Front ports:** one mapping, shared by both ports and by any USB controller that has no mapping of its own. The console sees every front-port controller as the same type, so they can't be told apart.
+- **USB controllers:** each model gets its own mapping, and the front ports stay as they are. A USB controller plays as the first free player: player 2 with a controller in port 1, player 1 when port 1 is empty.
+- Plug the front controller in before the USB one. If you plug it in later, unplug the USB controller and plug it back in.
 
-### **Credits**
-- [DefKorns](https://gitlab.com/DefKorns)
+## Requirements
 
-### **Thanks to**
-- [Advokaten](https://gitlab.com/advokaten)
-- [CompCom](https://www.reddit.com/u/CompComDev)
+- [Hakchi2 CE](https://github.com/TeamShinkansen/hakchi2/releases/latest)
+- [My Options Menu fork](https://github.com/DefKorns/OptionsMenu/releases)
+
+## Credits
+
+- [DefKorns](https://github.com/DefKorns)
+- Based on [advokaten's](https://github.com/advokaten) [Remap-Canoe-Controller](https://github.com/advokaten/Remap-Canoe-Controller)
+
+## Thanks
+
+- [CompCom](https://github.com/CompCom) — original Options Menu
 - [ModMyClassic](https://modmyclassic.com/)
 - RetroKane
