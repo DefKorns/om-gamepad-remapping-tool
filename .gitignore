@@ -503,3 +503,5 @@ bXKUP/*
 assets/*
 assets.zip
 assets (2).zip
+.deps/
+mod/etc/options_menu/inputs/gamepad_remapper

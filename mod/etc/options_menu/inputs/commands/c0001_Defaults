@@ -1,3 +1,0 @@
-COMMAND_NAME=Restore to Defaults
-COMMAND_TYPE=EXTERNAL
-COMMAND_STR=sh %script_dir%/om_default

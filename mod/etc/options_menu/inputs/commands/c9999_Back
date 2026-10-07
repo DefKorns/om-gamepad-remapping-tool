@@ -1,4 +1,0 @@
-COMMAND_NAME=Back
-COMMAND_TYPE=EXTERNAL
-RESTART_UI=FALSE
-COMMAND_STR=usleep 50000 && %options_path%/options &
