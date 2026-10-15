@@ -9,7 +9,7 @@ on:
 jobs:
   hmod:
     # Keep in sync with the hmod-build submodule commit.
-    uses: DefKorns/hmod-build/.github/workflows/hmod.yml@9f553b5718ca671cf7bf59f9c714c3e07042ee4d
+    uses: DefKorns/hmod-build/.github/workflows/hmod.yml@dd43d855a4edc2eac0a1ece52ed3cb5f5b6fb1b4
     with:
       release-name: Gamepad Remapping Tool
       docker: true
