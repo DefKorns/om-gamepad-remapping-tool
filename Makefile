@@ -49,11 +49,11 @@ mod/etc/options_menu/inputs/pad_mapper: $(MAPPER_OBJECTS)
 -include $(wildcard $(DEPDIR)/*.d)
 
 clean:
-	find . -name "*.o" -type f -not -path "./toolchain/*" -delete
+	find . -name "*.o" -type f -not -path "./vendor/*" -delete
 	rm -rf $(DEPDIR)
 	rm -f $(MOD_DEPS)
 	rm -rf out/
 
-include hmod-build/hmod.mk
+include vendor/hmod-build/hmod.mk
 
 .PHONY: all compile clean
