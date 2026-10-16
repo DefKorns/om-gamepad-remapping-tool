@@ -1,78 +1,43 @@
------------------------
-Name: Remap Canoe Controller
-Creator: DefKorns
-Category: Controller
------------------------
+# Options Menu - Gamepad Remapping Tool
 
-This hmod allows you to edit the controller inputs used in Canoe and Kachikachi.
+**Requires [my Options Menu fork](https://github.com/DefKorns/OptionsMenu/releases) as a base — not compatible with any other UI.**
 
-### Preconfigured:
-#### **Canoe:**
-+ The A and B buttons are swapped.
+![Front ports](https://raw.githubusercontent.com/DefKorns/om-gamepad-remapping-tool/om_version/docs/remapper-front-ports.png)
 
-#### **Kachikachi:**
-+ The B and Y buttons act as A and B.
+## What is it?
 
-### **Information:**
+Remap the buttons that Canoe and Kachikachi (the console's SNES and NES emulators) see, from the console itself. Map the front ports, or give each USB controller model — a DualShock 4, for example — a mapping of its own.
 
-- Any controller connected to the port(s) at the front of the Mini, will be recognized as a Nintendo Clovercon controller, including controllers connected via bluetooth recievers such as the 8bitdo Retro Reciever.
+Open the Options Menu (hold **L+R** on a SNES/Super Famicom, **B+Down** on a NES/Famicom) and go to **Advanced Options → Controller → Gamepad Remapping**.
 
-+ You can edit gamecontrollerdb.txt before and after you install the hmod.
+## Features
 
-- Updated current database with an additional 60 controller mappings for future purpose.
+- **Every button in one list** with what it's mapped to; select a row and press the new button to remap just that one
+- **Map all buttons** walks through them one by one — wait 5 seconds to keep the current one — and then offers ZL, ZR, Home and the analog sticks
+- **Pick the controller** on the first row: the front ports, or any USB controller by its real name
+- **Save** applies right away, no reboot; **Restore defaults** undoes it
+- **Down+Select** (the Home Combo) and the controller's own Home/PS button take you back to the menu on USB controllers too
+- **Ready-made profiles:** a DualShock 4 works as soon as you plug it in, with the SNES layout (Cross = A, Circle = B, Triangle = X, Square = Y). The PlayStation Classic controller, the wired Xbox 360 controller (by label: A = A, B = B, X = Y, Y = X) and the Krom Kumite arcade stick also work out of the box
+- Buttons are shown by their names — Cross, L1, Share, D-Pad Up — instead of raw codes
 
-<br>
+## Front ports and USB controllers
 
-### **How do I edit the inputs after installation?**
+- **Front ports:** one mapping, shared by both ports and by any USB controller that has no mapping of its own. The console sees every front-port controller as the same type, so they can't be told apart.
+- **USB controllers:** each model gets its own mapping, and the front ports stay as they are. A USB controller plays as the first free player: player 2 with a controller in port 1, player 1 when port 1 is empty.
+- Plug the front controller in before the USB one. If you plug it in later, unplug the USB controller and plug it back in.
 
-#### **USB-host:**
-1. Go to usb:/hakchi/canoecontrollerconfig
-2. Edit gamecontrollerdb.txt
+## Requirements
 
-#### **Others:**
-1. FTP to /etc/sdl2-override.
-2. Edit gamecontrollerdb.txt located in either NES or SNES folder, depending on which system you want to edit.
+- [Hakchi2 CE](https://github.com/TeamShinkansen/hakchi2/releases/latest)
+- [My Options Menu fork](https://github.com/DefKorns/OptionsMenu/releases)
 
-<br>
+## Credits
 
-### **Edit Nintendo Clovercon example:**
+- [DefKorns](https://github.com/DefKorns)
+- Based on [advokaten's](https://github.com/advokaten) [Remap-Canoe-Controller](https://github.com/advokaten/Remap-Canoe-Controller)
 
-If you want to swap X and Y, simply change
+## Thanks
 
-```
-y:b3,x:b2
-```
-to
-```
-y:b2,x:b3
-```
-
-<br>
-
-### **Installs to:**
-
-```
-/etc/preinit.d                                        
-```
-and       
-```                                            
-/etc/sdl2-override                                   
-```
-
-<br>
-YouTube Tutorial:
-
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=B_zTxRl7yg4
-" target><img src="http://img.youtube.com/vi/B_zTxRl7yg4/0.jpg" 
-alt="Remap Canoe Controller Advokaten SNES Mini" title="Click to open 'Remap Canoe Controller Tutorial' in your browser" width="360" height="240" border="10" /></a>
-
-<br>
-Thanks to:
-
-madmonkey
-
-DanTheMan827
-
-swingflip
-
-bslenul
+- [CompCom](https://github.com/CompCom) — original Options Menu
+- [ModMyClassic](https://modmyclassic.com/)
+- RetroKane

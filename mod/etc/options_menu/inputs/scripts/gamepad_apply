@@ -1,0 +1,50 @@
+#!/bin/sh
+# shellcheck disable=SC2154,SC2016,SC3046,SC3051
+#
+#  Copyright (c) 2026 DefKorns (https://defkorns.github.io/LICENSE)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# shellcheck source=/dev/null
+source /etc/preinit
+script_init
+
+sdl_dir="$mountpoint/etc/sdl2"
+sdl_db="$sdl_dir/gamecontrollerdb.txt"
+custom_db="$mountpoint/etc/options_menu/inputs/sdl2/gamecontrollerdb.txt"
+legacy_dir="$mountpoint/etc/options_menu/inputs/assets/sdl2"
+preinit_file="$mountpoint/etc/preinit.d/p8000_gamepadremapper"
+
+unbindMapping() {
+  while grep -qE " ($sdl_db|$sdl_dir) " /proc/mounts; do
+    umount "$sdl_db" 2>/dev/null || umount "$sdl_dir" 2>/dev/null || break
+  done
+}
+
+case "$1" in
+apply)
+  [ -f "$custom_db" ] || exit 1
+  unbindMapping
+  mount_bind "$custom_db" "$sdl_db"
+  rm -rf "$legacy_dir"
+  echo '[ -f "$mountpoint/etc/options_menu/inputs/sdl2/gamecontrollerdb.txt" ] && mount_bind "$mountpoint/etc/options_menu/inputs/sdl2/gamecontrollerdb.txt" "$mountpoint/etc/sdl2/gamecontrollerdb.txt"' >"$preinit_file"
+  ;;
+restore)
+  unbindMapping
+  rm -rf "$preinit_file" "$custom_db" "$legacy_dir"
+  ;;
+*)
+  exit 1
+  ;;
+esac
