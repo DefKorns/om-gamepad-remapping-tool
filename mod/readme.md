@@ -2,7 +2,7 @@
 
 **Requires [my Options Menu fork](https://github.com/DefKorns/OptionsMenu/releases) as a base — not compatible with any other UI.**
 
-![Front ports](https://raw.githubusercontent.com/DefKorns/om-gamepad-remapping-tool/om_version/docs/remapper-front-ports.png)
+![Front ports](https://raw.githubusercontent.com/DefKorns/om-gamepad-remapping-tool/master/docs/remapper-front-ports.png)
 
 ## What is it?
 
