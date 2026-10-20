@@ -208,16 +208,15 @@ void RemapperApp::SelectController(int index)
     controllerIndex_ = ((index % count) + count) % count;
     rawCapture_.reset();
     saved_ = GamepadMapping();
+    SetMapperPaused(false);
     if(UsbMode())
     {
-        SetMapperPaused(true);
         rawCapture_.reset(new RawCapture(usbPads_[controllerIndex_ - 1]));
         capture_ = rawCapture_.get();
         LoadUsbMapping();
     }
     else
     {
-        SetMapperPaused(false);
         capture_ = sdlCapture_.get();
         saved_ = LoadActiveMapping(ActiveDbPath);
     }
@@ -291,6 +290,7 @@ void RemapperApp::StartCapture(int target)
     }
     captureTarget_ = target;
     ScrollTo(ActionRowCount + target);
+    SetMapperPaused(UsbMode());
     capture_->Begin();
     captureStartedAt_ = SDL_GetTicks();
 }
@@ -312,6 +312,7 @@ void RemapperApp::StartExtrasGate()
 {
     mode_ = Mode::ExtrasGate;
     captureTarget_ = -1;
+    SetMapperPaused(UsbMode());
     capture_->Begin();
     captureStartedAt_ = SDL_GetTicks();
 }
@@ -319,6 +320,7 @@ void RemapperApp::StartExtrasGate()
 void RemapperApp::EndCapture()
 {
     capture_->Cancel();
+    SetMapperPaused(false);
     captureTarget_ = -1;
     mode_ = Mode::Browse;
     controller_->Reset();

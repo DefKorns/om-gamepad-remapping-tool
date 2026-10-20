@@ -107,6 +107,32 @@ namespace
         return names;
     }
 
+    const std::map<int, Name> & KromKumiteKeys()
+    {
+        static const std::map<int, Name> names = {
+            { 304, { "Square / X", false } }, { 305, { "Cross / A", false } },
+            { 306, { "Circle / B", false } }, { 307, { "Triangle / Y", false } },
+            { 308, { "L1 / LB", false } }, { 309, { "R1 / RB", false } },
+            { 310, { "L2 / LT", false } }, { 311, { "R2 / RT", false } },
+            { 312, { "Share", false } }, { 313, { "Options", false } },
+            { 314, { "L3 / SL", false } }, { 315, { "R3 / SR", false } },
+        };
+        return names;
+    }
+
+    const std::map<int, Name> & KromKumiteAltKeys()
+    {
+        static const std::map<int, Name> names = {
+            { 304, { "Cross / A", false } }, { 305, { "Circle / B", false } },
+            { 307, { "Square / X", false } }, { 308, { "Triangle / Y", false } },
+            { 310, { "L1 / LB", false } }, { 311, { "R1 / RB", false } },
+            { 312, { "L2 / LT", false } }, { 313, { "R2 / RT", false } },
+            { 314, { "Share", false } }, { 315, { "Options", false } }, { 316, { "Home", false } },
+            { 317, { "L3 / SL", false } }, { 318, { "R3 / SR", false } },
+        };
+        return names;
+    }
+
     const Model * FindModel(unsigned int vendor, unsigned int product)
     {
         static const Model models[] = {
@@ -114,6 +140,8 @@ namespace
             { 0x054c, 0x05c4, DualShock4Keys(), DualShock4Axes(), false },
             { 0x054c, 0x0cda, PlayStationClassicKeys(), {}, true },
             { 0x045e, 0x028e, Xbox360Keys(), Xbox360Axes(), false },
+            { 0x0e6f, 0x0180, KromKumiteKeys(), DualShock4Axes(), false },
+            { 0x0079, 0x181c, KromKumiteAltKeys(), {}, false },
         };
         for(const Model & model : models)
             if(model.vendor == vendor && model.product == product)

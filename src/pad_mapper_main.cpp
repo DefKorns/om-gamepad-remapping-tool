@@ -85,10 +85,18 @@ int main()
     std::vector<std::unique_ptr<PadTranslator>> translators;
     std::string signature;
     bool rebuild = true;
+    bool paused = false;
     auto nextScan = std::chrono::steady_clock::now();
 
     while(running)
     {
+        if(Exists(PadMapperPauseFlag) != paused)
+        {
+            paused = !paused;
+            nextScan = std::chrono::steady_clock::now();
+            if(paused)
+                translators.clear();
+        }
         if(std::chrono::steady_clock::now() >= nextScan)
         {
             nextScan = std::chrono::steady_clock::now() + RescanInterval;
@@ -119,7 +127,7 @@ int main()
         std::vector<pollfd> fds;
         for(const auto & translator : translators)
             fds.push_back(pollfd{ translator->Fd(), POLLIN, 0 });
-        if(poll(fds.data(), fds.size(), PollTimeoutMs) <= 0)
+        if(poll(fds.data(), fds.size(), PollTimeoutMs) <= 0 || Exists(PadMapperPauseFlag))
             continue;
         for(size_t i = 0; i < fds.size(); ++i)
             if(fds[i].revents & POLLIN)

@@ -39,7 +39,7 @@ mod/etc/options_menu/inputs/gamepad_remapper: $(OBJECTS)
 
 mod/etc/options_menu/inputs/pad_mapper: $(MAPPER_OBJECTS)
 	mkdir -p $(@D)
-	$(CROSS_PREFIX)$(CXX) $(MAPPER_OBJECTS) -o $@
+	$(CROSS_PREFIX)$(CXX) $(MAPPER_OBJECTS) -Wl,-rpath,/etc/options_menu/lib -o $@
 	$(CROSS_PREFIX)$(STRIP) $@
 
 %.o: %.cpp
