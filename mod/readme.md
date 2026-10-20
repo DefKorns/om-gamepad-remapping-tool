@@ -10,6 +10,8 @@ Remap the buttons that Canoe and Kachikachi (the console's SNES and NES emulator
 
 Open the Options Menu (hold **L+R** on a SNES/Super Famicom, **B+Down** on a NES/Famicom) and go to **Advanced Options → Controller → Gamepad Remapping**.
 
+A step-by-step guide and the list of supported controllers are in the [wiki](https://github.com/DefKorns/om-gamepad-remapping-tool/wiki).
+
 ## Features
 
 - **Every button in one list** with what it's mapped to; select a row and press the new button to remap just that one
@@ -27,6 +29,7 @@ Open the Options Menu (hold **L+R** on a SNES/Super Famicom, **B+Down** on a NES
 - **USB controllers:** each model gets its own mapping, and the front ports stay as they are. A USB controller plays as the first free player: player 2 with a controller in port 1, player 1 when port 1 is empty.
 - Wii Classic Controllers work in the front ports. Some clones aren't recognised by the console at all (it logs `controller setup failed with error 70`), and no mapping can fix that.
 - Plug the front controller in before the USB one. If you plug it in later, unplug the USB controller and plug it back in.
+- If you remove the front controller later, the USB controller stays player 2: unplug the USB controller and plug it back in (or restart the console).
 
 ## Requirements
 

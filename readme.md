@@ -15,6 +15,8 @@ Remap the buttons that Canoe and Kachikachi (the SNES and NES Classic emulators)
 
 The screen is a C++/SDL app (`gamepad_remapper`) built against the vendored Options Menu engine, and USB controllers are handled by a small background service (`pad_mapper`).
 
+A step-by-step guide and the list of supported controllers are in the [wiki](https://github.com/DefKorns/om-gamepad-remapping-tool/wiki).
+
 ## Features
 
 - **Every button in one list** with what it's mapped to; select a row and press the new button to remap just that one
@@ -33,6 +35,7 @@ The screen is a C++/SDL app (`gamepad_remapper`) built against the vendored Opti
 - **USB controllers:** each model (USB vendor and product) gets its own mapping, and the front ports stay as they are. hakchi turns a USB controller into a virtual front-port controller, and it plays as the first free player: player 2 with a controller in port 1, player 1 when port 1 is empty.
 - Wii Classic Controllers work in the front ports. Some clones aren't recognised by the console at all (it logs `controller setup failed with error 70`), and no mapping can fix that.
 - Plug the front controller in before the USB one. If you plug it in later, hakchi leaves both as player 1: unplug the USB controller and plug it back in.
+- If you remove the front controller later, the USB controller stays player 2: unplug the USB controller and plug it back in (or restart the console).
 
 ## Requirements
 
