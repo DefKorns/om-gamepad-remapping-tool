@@ -9,8 +9,10 @@
 
 #include "pad_map.h"
 
+#include <signal.h>
 #include <sys/stat.h>
 
+#include <cerrno>
 #include <cstdio>
 #include <fstream>
 
@@ -28,6 +30,20 @@ namespace
         struct stat info;
         return stat(path.c_str(), &info) == 0;
     }
+}
+
+bool PadMapperPaused()
+{
+    std::ifstream in(PadMapperPauseFlag);
+    if(!in)
+        return false;
+    long pid = 0;
+    if(in >> pid && pid > 0 && kill(static_cast<pid_t>(pid), 0) != 0 && errno == ESRCH)
+    {
+        std::remove(PadMapperPauseFlag);
+        return false;
+    }
+    return true;
 }
 
 std::string PadMapPath(const InputNode & pad)

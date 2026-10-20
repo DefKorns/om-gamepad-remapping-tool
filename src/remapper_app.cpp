@@ -17,6 +17,7 @@
 #include "localization.h"
 
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <chrono>
@@ -169,7 +170,7 @@ std::string RemapperApp::ControllerName(int index) const
 void RemapperApp::SetMapperPaused(bool paused) const
 {
     if(paused)
-        std::ofstream(PadMapperPauseFlag).put('1');
+        std::ofstream(PadMapperPauseFlag) << getpid();
     else
         std::remove(PadMapperPauseFlag);
 }

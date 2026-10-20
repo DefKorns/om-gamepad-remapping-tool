@@ -36,12 +36,6 @@ namespace
         running = 0;
     }
 
-    bool Exists(const std::string & path)
-    {
-        struct stat info;
-        return stat(path.c_str(), &info) == 0;
-    }
-
     long ModifiedTime(const std::string & path)
     {
         struct stat info;
@@ -58,7 +52,7 @@ namespace
     Plan BuildPlan()
     {
         Plan plan;
-        if(Exists(PadMapperPauseFlag))
+        if(PadMapperPaused())
             return plan;
         const std::vector<InputNode> nodes = ListInputNodes();
         for(const InputNode & pad : UsbPads(nodes))
@@ -90,7 +84,7 @@ int main()
 
     while(running)
     {
-        if(Exists(PadMapperPauseFlag) != paused)
+        if(PadMapperPaused() != paused)
         {
             paused = !paused;
             nextScan = std::chrono::steady_clock::now();
@@ -127,7 +121,7 @@ int main()
         std::vector<pollfd> fds;
         for(const auto & translator : translators)
             fds.push_back(pollfd{ translator->Fd(), POLLIN, 0 });
-        if(poll(fds.data(), fds.size(), PollTimeoutMs) <= 0 || Exists(PadMapperPauseFlag))
+        if(poll(fds.data(), fds.size(), PollTimeoutMs) <= 0 || PadMapperPaused())
             continue;
         for(size_t i = 0; i < fds.size(); ++i)
             if(fds[i].revents & POLLIN)

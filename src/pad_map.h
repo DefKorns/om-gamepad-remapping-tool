@@ -19,6 +19,7 @@ constexpr const char * PadMapDir = "/etc/options_menu/inputs/pads/";
 constexpr const char * PadProfileDir = "/etc/options_menu/inputs/profiles/";
 constexpr const char * PadMapperPauseFlag = "/tmp/pad_mapper.pause";
 
+bool PadMapperPaused();
 std::string PadMapPath(const InputNode & pad);
 std::string PadProfilePath(const InputNode & pad);
 std::string ActivePadMapPath(const InputNode & pad);
