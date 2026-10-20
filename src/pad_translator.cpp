@@ -104,7 +104,11 @@ void PadTranslator::AddRule(const std::string & field, const std::string & sourc
         rule.targetCode = CloverconKeys[index];
     }
     else if(binding[0] == 'a')
+    {
+        if(index < 0 || index >= AbsCount)
+            return;
         rule.targetCode = index;
+    }
     else
         return;
 
