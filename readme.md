@@ -24,18 +24,20 @@ The screen is a C++/SDL app (`gamepad_remapper`) built against the vendored Opti
 - **Down+Select** (the Home Combo) and the controller's own Home/PS button take you back to the menu on USB controllers too
 - **Ready-made profiles:** a DualShock 4 works as soon as you plug it in, with the SNES layout (Cross = A, Circle = B, Triangle = X, Square = Y). The PlayStation Classic controller, the wired Xbox 360 controller (by label: A = A, B = B, X = Y, Y = X) and the Krom Kumite arcade stick also work out of the box
 - Buttons are shown by their names — Cross, L1, Share, D-Pad Up — instead of raw codes
+- **A USB controller keeps navigating the menu** while you remap it; it only stops while a button is being captured
 - Every Options Menu language
 
 ## Front ports and USB controllers
 
 - **Front ports:** one mapping, shared by both ports and by any USB controller that has no mapping of its own. The console sees every front-port controller as the same SDL controller (same GUID), so they can't be told apart.
 - **USB controllers:** each model (USB vendor and product) gets its own mapping, and the front ports stay as they are. hakchi turns a USB controller into a virtual front-port controller, and it plays as the first free player: player 2 with a controller in port 1, player 1 when port 1 is empty.
+- Wii Classic Controllers work in the front ports. Some clones aren't recognised by the console at all (it logs `controller setup failed with error 70`), and no mapping can fix that.
 - Plug the front controller in before the USB one. If you plug it in later, hakchi leaves both as player 1: unplug the USB controller and plug it back in.
 
 ## Requirements
 
 - [Hakchi2 CE](https://github.com/TeamShinkansen/hakchi2/releases/latest)
-- [My Options Menu fork](https://github.com/DefKorns/OptionsMenu/releases) — the base UI this mod plugs into
+- [My Options Menu fork](https://github.com/DefKorns/OptionsMenu/releases) — the base UI this mod plugs into. On a console with RetroArch 1.8.4 Xtreme SC, use its compat build: `pad_mapper` loads the private libstdc++ it installs in `/etc/options_menu/lib`
 
 ## Install
 
