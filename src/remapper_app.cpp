@@ -122,6 +122,10 @@ RemapperApp::RemapperApp(std::string optionsLocation)
     SetDrawColor(renderer_, UiTheme::Bg);
 
     gearIcon_ = Texture(optionsLocation_ + UiTheme::AssetGear, renderer_, UiTheme::GearX, UiTheme::GearY);
+    scrollUp_ = Texture(optionsLocation_ + UiTheme::AssetChevronUp, renderer_, UiTheme::ScrollX, UiTheme::ScrollUpY);
+    SetColorMod(scrollUp_.texture.get(), UiTheme::ScrollArrow);
+    scrollUp_.rect.x -= scrollUp_.rect.w / 2;
+    scrollDown_ = scrollUp_;
     appTitleText_ = Texture(Translate("GP_TITLE"), UiTheme::TitleFontSize, renderer_, UiTheme::TitleX, UiTheme::TitleY, false, ToAbgr(UiTheme::Text), true);
     appTitleText_.rect.y -= appTitleText_.rect.h / 2;
     appVersionText_ = Texture(MOD_VERSION, UiTheme::VersionFontSize, renderer_, appTitleText_.rect.x + appTitleText_.rect.w + UiTheme::VersionGap, UiTheme::TitleY, false, ToAbgr(UiTheme::Text), true);
@@ -149,7 +153,7 @@ RemapperApp::RemapperApp(std::string optionsLocation)
             wizardOrder_.push_back(i);
 
     rowPitch_ = std::max(UiTheme::RowPitch, GetTTFLineHeight(RowGlyphSize));
-    visibleRows_ = std::max(1, (UiTheme::FooterDividerY - UiTheme::ListBottomMargin - UiTheme::RowFirstY) / rowPitch_);
+    visibleRows_ = std::max(1, (UiTheme::FooterDividerY - UiTheme::ListBottomMargin - UiTheme::RowFirstY - rowPitch_ / 2) / rowPitch_);
     SelectController(0);
 }
 
@@ -515,10 +519,15 @@ void RemapperApp::DrawRows()
     const int lastRow = std::min(static_cast<int>(rows_.size()), topRow_ + visibleRows_);
     const int highlighted = captureTarget_ >= 0 ? ActionRowCount + captureTarget_ : selected_;
     int y = UiTheme::RowFirstY;
+    int firstCenterY = 0;
+    int lastCenterY = 0;
     for(int i = topRow_; i < lastRow; ++i, y += rowPitch_)
     {
         Row & row = rows_[i];
         row.label.rect.y = y + (rowPitch_ - row.label.rect.h) / 2 + UiTheme::RowTextYNudge;
+        lastCenterY = row.label.rect.y + row.label.rect.h / 2;
+        if(i == topRow_)
+            firstCenterY = lastCenterY;
         if(i == highlighted && mode_ != Mode::ExtrasGate)
         {
             const SDL_Rect box{ UiTheme::ListX, row.label.rect.y - SelectionPad, UiTheme::ListContentRightX - UiTheme::ListX, row.label.rect.h + 2 * SelectionPad };
@@ -536,7 +545,17 @@ void RemapperApp::DrawRows()
             value.Draw(renderer_);
         }
         if(i == ActionRowCount - 1)
-            DrawHLine(renderer_, UiTheme::ListX, UiTheme::ListContentRightX, row.label.rect.y + row.label.rect.h + DividerOffset, UiTheme::Accent, SelectionBorderW);
+            y += rowPitch_ / 2;
+    }
+    if(topRow_ != 0)
+    {
+        scrollUp_.rect.y = firstCenterY - scrollUp_.rect.h / 2;
+        scrollUp_.Draw(renderer_);
+    }
+    if(topRow_ + visibleRows_ < static_cast<int>(rows_.size()))
+    {
+        scrollDown_.rect.y = lastCenterY - scrollDown_.rect.h / 2;
+        scrollDown_.Draw(renderer_, SDL_FLIP_VERTICAL);
     }
 }
 

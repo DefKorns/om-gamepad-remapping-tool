@@ -101,6 +101,7 @@ private:
     Uint32 captureStartedAt_ = 0;
     Uint32 noticeUntil_ = 0;
 
+    Texture scrollUp_, scrollDown_;
     Texture gearIcon_, appTitleText_, appVersionText_, sectionTitle_, creditText_, noticeText_, lastCapture_;
     std::vector<Texture> sharedNotice_;
     std::unique_ptr<BadgePainter> badges_;
