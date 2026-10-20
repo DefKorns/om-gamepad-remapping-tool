@@ -55,7 +55,6 @@ private:
     std::vector<Rule> rules_;
     std::vector<input_absinfo> sourceAbs_;
     std::vector<input_absinfo> targetAbs_;
-    bool homeComboEnabled_ = false;
     bool homeActive_ = false;
 };
 

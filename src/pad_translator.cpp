@@ -63,7 +63,6 @@ PadTranslator::PadTranslator(const InputNode & pad, const InputNode & target, co
             close(targetQuery);
         return;
     }
-    homeComboEnabled_ = HomeComboEnabled();
     sourceAbs_ = ReadAbs(source_);
     targetAbs_ = ReadAbs(targetQuery);
     close(targetQuery);
@@ -202,8 +201,6 @@ void PadTranslator::Apply(const input_event & event)
 
 void PadTranslator::UpdateHomeCombo()
 {
-    if(!homeComboEnabled_)
-        return;
     bool down = false;
     bool select = false;
     for(const Rule & rule : rules_)
@@ -211,7 +208,7 @@ void PadTranslator::UpdateHomeCombo()
         down = down || (rule.comboDown && rule.pressed);
         select = select || (rule.comboSelect && rule.pressed);
     }
-    const bool combo = down && select;
+    const bool combo = down && select && HomeComboEnabled();
     if(combo == homeActive_)
         return;
     homeActive_ = combo;
