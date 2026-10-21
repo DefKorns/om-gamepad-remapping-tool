@@ -50,11 +50,7 @@ namespace
     constexpr int PanelHintBottom = 25;
     constexpr int TimerBarH = 6;
     constexpr int TimerBarInset = 60;
-    constexpr int SectionAccentGap = 14;
-    constexpr int CreditFontSize = 16;
-    constexpr int SelectionBorderW = 2;
-    constexpr int SelectionPad = 2;
-    constexpr int DividerOffset = 3;
+    constexpr int RowBoxH = UiTheme::RowPitch - 6;
 
     int TextWidth(const std::string & text, int fontSize)
     {
@@ -121,17 +117,9 @@ RemapperApp::RemapperApp(std::string optionsLocation)
     capture_ = sdlCapture_.get();
     SetDrawColor(renderer_, UiTheme::Bg);
 
-    gearIcon_ = Texture(optionsLocation_ + UiTheme::AssetGear, renderer_, UiTheme::GearX, UiTheme::GearY);
-    scrollUp_ = Texture(optionsLocation_ + UiTheme::AssetChevronUp, renderer_, UiTheme::ScrollX, UiTheme::ScrollUpY);
-    SetColorMod(scrollUp_.texture.get(), UiTheme::ScrollArrow);
-    scrollUp_.rect.x -= scrollUp_.rect.w / 2;
-    scrollDown_ = scrollUp_;
-    appTitleText_ = Texture(Translate("GP_TITLE"), UiTheme::TitleFontSize, renderer_, UiTheme::TitleX, UiTheme::TitleY, false, ToAbgr(UiTheme::Text), true);
-    appTitleText_.rect.y -= appTitleText_.rect.h / 2;
-    appVersionText_ = Texture(MOD_VERSION, UiTheme::VersionFontSize, renderer_, appTitleText_.rect.x + appTitleText_.rect.w + UiTheme::VersionGap, UiTheme::TitleY, false, ToAbgr(UiTheme::Text), true);
-    appVersionText_.rect.y -= appVersionText_.rect.h / 2;
-    sectionTitle_ = Texture(Translate("GP_BUTTONS"), UiTheme::SectionTitleFontSize, renderer_, UiTheme::SectionTitleX, UiTheme::SectionTitleY, false, ToAbgr(UiTheme::Text), true);
-    creditText_ = Texture("Gamepad Remapping Tool - by DefKorns", CreditFontSize, renderer_, UiTheme::CreditX, UiTheme::CreditY, false, ToAbgr(UiTheme::Text), true);
+    chrome_ = std::make_unique<ScreenChrome>(optionsLocation_, renderer_, Translate("GP_TITLE"), MOD_VERSION, "Gamepad Remapping Tool - by DefKorns");
+    chrome_->SetSectionTitle(Translate("GP_BUTTONS"));
+    scrollArrows_ = std::make_unique<ScrollArrows>(optionsLocation_, renderer_);
 
     badges_ = std::make_unique<BadgePainter>(optionsLocation_, renderer_);
     badgeA_ = badges_->Make("A", Translate("HINT_SELECT"), UiTheme::BadgeADark, UiTheme::BadgeA);
@@ -152,8 +140,6 @@ RemapperApp::RemapperApp(std::string optionsLocation)
         if(!targets[i].extra)
             wizardOrder_.push_back(i);
 
-    rowPitch_ = std::max(UiTheme::RowPitch, GetTTFLineHeight(RowGlyphSize));
-    visibleRows_ = std::max(1, (UiTheme::FooterDividerY - UiTheme::ListBottomMargin - UiTheme::RowFirstY - rowPitch_ / 2) / rowPitch_);
     SelectController(0);
 }
 
@@ -251,20 +237,29 @@ void RemapperApp::RefreshValues()
     rows_[SaveRowIndex].label = Texture(Translate("GP_SAVE"), RowGlyphSize, renderer_, UiTheme::RowTextX, 0, false, ToAbgr(saveColor), true);
 }
 
+// the blank slot after the action rows takes one row while they are on screen
+int RemapperApp::VisibleRows(int top) const
+{
+    return top < ActionRowCount ? UiTheme::ListRows - 1 : UiTheme::ListRows;
+}
+
 void RemapperApp::ScrollTo(int row)
 {
+    const int count = static_cast<int>(rows_.size());
     if(row < topRow_)
         topRow_ = row;
-    else if(row >= topRow_ + visibleRows_)
-        topRow_ = row - visibleRows_ + 1;
-    topRow_ = std::max(0, std::min(topRow_, static_cast<int>(rows_.size()) - visibleRows_));
+    while(row >= topRow_ + VisibleRows(topRow_))
+        ++topRow_;
+    while(topRow_ > 0 && topRow_ + VisibleRows(topRow_) > count)
+        --topRow_;
 }
 
 void RemapperApp::ShowNotice(const std::string & key)
 {
     noticeText_ = Texture(Translate(key), PanelSmallSize, renderer_, 0, 0, false, ToAbgr(UiTheme::Accent), true);
     noticeText_.rect.x = UiTheme::ListContentRightX - noticeText_.rect.w;
-    noticeText_.rect.y = sectionTitle_.rect.y + (sectionTitle_.rect.h - noticeText_.rect.h) / 2;
+    const SDL_Rect & title = chrome_->SectionTitleRect();
+    noticeText_.rect.y = title.y + (title.h - noticeText_.rect.h) / 2;
     noticeUntil_ = SDL_GetTicks() + NoticeMs;
 }
 
@@ -495,19 +490,9 @@ bool RemapperApp::HandleBrowseInput()
 
 void RemapperApp::DrawChrome()
 {
-    DrawStrokeRect(renderer_, UiTheme::OuterRect, UiTheme::Border, UiTheme::BorderWidth, UiTheme::BorderRadius);
-    gearIcon_.Draw(renderer_);
-    appTitleText_.Draw(renderer_);
-    appVersionText_.Draw(renderer_);
-    DrawHLine(renderer_, UiTheme::HeaderDividerX, UiTheme::HeaderDividerX + UiTheme::HeaderDividerW, UiTheme::HeaderDividerY, UiTheme::Border, UiTheme::BorderWidth);
-    DrawHLine(renderer_, UiTheme::OuterRect.x, UiTheme::OuterRect.x + UiTheme::OuterRect.w, UiTheme::FooterDividerY, UiTheme::Border, UiTheme::BorderWidth);
-    creditText_.Draw(renderer_);
+    chrome_->Draw();
     if(mode_ == Mode::Browse)
         badges_->Draw(badgeB_, badges_->Draw(badgeA_, UiTheme::BadgeClusterRightX, UiTheme::BadgeBandY), UiTheme::BadgeBandY);
-
-    const int accentBarY = sectionTitle_.rect.y + (sectionTitle_.rect.h - UiTheme::SectionAccentBarH) / 2;
-    DrawFillRect(renderer_, { UiTheme::SectionTitleX - UiTheme::SectionAccentBarW - SectionAccentGap, accentBarY, UiTheme::SectionAccentBarW, UiTheme::SectionAccentBarH }, UiTheme::Accent);
-    sectionTitle_.Draw(renderer_);
     if(SDL_GetTicks() < noticeUntil_)
         noticeText_.Draw(renderer_);
     for(Texture & line : sharedNotice_)
@@ -516,26 +501,15 @@ void RemapperApp::DrawChrome()
 
 void RemapperApp::DrawRows()
 {
-    const int lastRow = std::min(static_cast<int>(rows_.size()), topRow_ + visibleRows_);
+    const int count = static_cast<int>(rows_.size());
+    const int lastRow = std::min(count, topRow_ + VisibleRows(topRow_));
     const int highlighted = captureTarget_ >= 0 ? ActionRowCount + captureTarget_ : selected_;
-    int y = UiTheme::RowFirstY;
-    int firstCenterY = 0;
-    int lastCenterY = 0;
-    for(int i = topRow_; i < lastRow; ++i, y += rowPitch_)
+    int slot = 0;
+    for(int i = topRow_; i < lastRow; ++i, ++slot)
     {
         Row & row = rows_[i];
-        row.label.rect.y = y + (rowPitch_ - row.label.rect.h) / 2 + UiTheme::RowTextYNudge;
-        lastCenterY = row.label.rect.y + row.label.rect.h / 2;
-        if(i == topRow_)
-            firstCenterY = lastCenterY;
-        if(i == highlighted && mode_ != Mode::ExtrasGate)
-        {
-            const SDL_Rect box{ UiTheme::ListX, row.label.rect.y - SelectionPad, UiTheme::ListContentRightX - UiTheme::ListX, row.label.rect.h + 2 * SelectionPad };
-            DrawRoundedFillRect(renderer_, box, UiTheme::SelectedRowBg, UiTheme::BoxRadius);
-            DrawStrokeRect(renderer_, box, UiTheme::Accent, SelectionBorderW, UiTheme::BoxRadius);
-        }
-        else if(i != lastRow - 1 && i != ActionRowCount - 1)
-            DrawHLine(renderer_, UiTheme::ListX, UiTheme::ListContentRightX, row.label.rect.y + row.label.rect.h + DividerOffset, UiTheme::Border);
+        const SDL_Rect rowRect = DrawListRow(renderer_, slot, UiTheme::ListContentRightX, RowBoxH, i == highlighted && mode_ != Mode::ExtrasGate);
+        row.label.rect.y = rowRect.y + (rowRect.h - row.label.rect.h) / 2;
         row.label.Draw(renderer_);
         if(row.kind == RowKind::Target)
         {
@@ -545,18 +519,9 @@ void RemapperApp::DrawRows()
             value.Draw(renderer_);
         }
         if(i == ActionRowCount - 1)
-            y += rowPitch_ / 2;
+            ++slot;
     }
-    if(topRow_ != 0)
-    {
-        scrollUp_.rect.y = firstCenterY - scrollUp_.rect.h / 2;
-        scrollUp_.Draw(renderer_);
-    }
-    if(topRow_ + visibleRows_ < static_cast<int>(rows_.size()))
-    {
-        scrollDown_.rect.y = lastCenterY - scrollDown_.rect.h / 2;
-        scrollDown_.Draw(renderer_, SDL_FLIP_VERTICAL);
-    }
+    scrollArrows_->Draw(topRow_ != 0, lastRow < count);
 }
 
 void RemapperApp::DrawCapturePanel()

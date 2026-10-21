@@ -22,7 +22,8 @@ LDLIBS = $(SDL_LIBS)
 SOURCES = src/main.cpp src/gamepad_mapping.cpp src/input_capture.cpp src/input_nodes.cpp src/pad_map.cpp src/pad_profiles.cpp src/raw_capture.cpp src/menu_navigation.cpp src/remapper_app.cpp \
 	$(VENDOR_SRC_DIR)/localization.cpp $(FRAMEWORK_DIR)/sdl_context.cpp $(FRAMEWORK_DIR)/texture.cpp \
 	$(FRAMEWORK_DIR)/controller.cpp $(FRAMEWORK_DIR)/powerwatch.cpp $(FRAMEWORK_DIR)/draw_helpers.cpp \
-	$(FRAMEWORK_DIR)/utf8.cpp $(FRAMEWORK_DIR)/font8x8_lookup.cpp $(FRAMEWORK_DIR)/uitheme.cpp $(FRAMEWORK_DIR)/badge.cpp $(FRAMEWORK_DIR)/dialog.cpp
+	$(FRAMEWORK_DIR)/utf8.cpp $(FRAMEWORK_DIR)/font8x8_lookup.cpp $(FRAMEWORK_DIR)/uitheme.cpp $(FRAMEWORK_DIR)/badge.cpp $(FRAMEWORK_DIR)/dialog.cpp \
+	$(FRAMEWORK_DIR)/list_screen.cpp $(FRAMEWORK_DIR)/text_layout.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 MAPPER_SOURCES = src/pad_mapper_main.cpp src/pad_translator.cpp src/pad_map.cpp src/input_nodes.cpp src/gamepad_mapping.cpp
 MAPPER_OBJECTS = $(MAPPER_SOURCES:.cpp=.o)
