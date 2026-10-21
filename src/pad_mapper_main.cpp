@@ -106,7 +106,7 @@ int main()
                     GamepadMapping padMap;
                     if(!LoadPadMap(ActivePadMapPath(plan.pads[i]), padMap))
                         continue;
-                    std::unique_ptr<PadTranslator> translator(new PadTranslator(plan.pads[i], plan.targets[i], padMap, frontMap));
+                    auto translator = std::make_unique<PadTranslator>(plan.pads[i], plan.targets[i], padMap, frontMap);
                     if(translator->Ok())
                         translators.push_back(std::move(translator));
                 }

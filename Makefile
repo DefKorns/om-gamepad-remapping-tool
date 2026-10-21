@@ -17,7 +17,7 @@ SDL_CFLAGS = $(shell sdl2-config --cflags) $(shell pkg-config --cflags SDL2_ttf)
 SDL_LIBS = $(shell sdl2-config --libs) $(shell pkg-config --libs SDL2_ttf) -lpng
 LDFLAGS =
 endif
-CXXFLAGS = -std=c++11 -Os -Wall -I$(VENDOR_SRC_DIR) $(SDL_CFLAGS) -DMOD_VERSION=\"v$(MOD_VER)\"
+CXXFLAGS = -std=c++14 -Os -Wall -I$(VENDOR_SRC_DIR) $(SDL_CFLAGS) -DMOD_VERSION=\"v$(MOD_VER)\"
 LDLIBS = $(SDL_LIBS)
 SOURCES = src/main.cpp src/gamepad_mapping.cpp src/input_capture.cpp src/input_nodes.cpp src/pad_map.cpp src/pad_profiles.cpp src/raw_capture.cpp src/menu_navigation.cpp src/remapper_app.cpp \
 	$(VENDOR_SRC_DIR)/localization.cpp $(FRAMEWORK_DIR)/sdl_context.cpp $(FRAMEWORK_DIR)/texture.cpp \

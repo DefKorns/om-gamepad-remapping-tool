@@ -114,10 +114,10 @@ RemapperApp::RemapperApp(std::string optionsLocation)
     , saved_(LoadActiveMapping(ActiveDbPath))
     , mapping_(saved_)
 {
-    sdlContext_.reset(new SDL_Context(std::chrono::milliseconds(33), false));
+    sdlContext_ = std::make_unique<SDL_Context>(std::chrono::milliseconds(33), false);
     renderer_ = sdlContext_->renderer;
-    controller_.reset(new Controller(1));
-    sdlCapture_.reset(new InputCapture());
+    controller_ = std::make_unique<Controller>(1);
+    sdlCapture_ = std::make_unique<InputCapture>();
     capture_ = sdlCapture_.get();
     SetDrawColor(renderer_, UiTheme::Bg);
 
@@ -133,12 +133,12 @@ RemapperApp::RemapperApp(std::string optionsLocation)
     sectionTitle_ = Texture(Translate("GP_BUTTONS"), UiTheme::SectionTitleFontSize, renderer_, UiTheme::SectionTitleX, UiTheme::SectionTitleY, false, ToAbgr(UiTheme::Text), true);
     creditText_ = Texture("Gamepad Remapping Tool - by DefKorns", CreditFontSize, renderer_, UiTheme::CreditX, UiTheme::CreditY, false, ToAbgr(UiTheme::Text), true);
 
-    badges_.reset(new BadgePainter(optionsLocation_, renderer_));
+    badges_ = std::make_unique<BadgePainter>(optionsLocation_, renderer_);
     badgeA_ = badges_->Make("A", Translate("HINT_SELECT"), UiTheme::BadgeADark, UiTheme::BadgeA);
     badgeB_ = badges_->Make("B", Translate("HINT_BACK"), UiTheme::BadgeBDark, UiTheme::BadgeB);
-    exitDialog_.reset(new ConfirmDialog(renderer_, *badges_, Translate("GP_UNSAVED"),
-                                        badges_->Make("A", Translate("GP_DISCARD"), UiTheme::BadgeADark, UiTheme::BadgeA),
-                                        badges_->Make("B", Translate("GP_STAY"), UiTheme::BadgeBDark, UiTheme::BadgeB)));
+    exitDialog_ = std::make_unique<ConfirmDialog>(renderer_, *badges_, Translate("GP_UNSAVED"),
+                                                 badges_->Make("A", Translate("GP_DISCARD"), UiTheme::BadgeADark, UiTheme::BadgeA),
+                                                 badges_->Make("B", Translate("GP_STAY"), UiTheme::BadgeBDark, UiTheme::BadgeB));
 
     const char * const actionKeys[ActionRowCount] = { "GP_CONTROLLER", "GP_MAP_ALL", "GP_SAVE", "GP_RESTORE" };
     const RowKind actionKinds[ActionRowCount] = { RowKind::Controller, RowKind::MapAll, RowKind::Save, RowKind::Restore };
@@ -216,7 +216,7 @@ void RemapperApp::SelectController(int index)
     SetMapperPaused(false);
     if(UsbMode())
     {
-        rawCapture_.reset(new RawCapture(usbPads_[controllerIndex_ - 1]));
+        rawCapture_ = std::make_unique<RawCapture>(usbPads_[controllerIndex_ - 1]);
         capture_ = rawCapture_.get();
         LoadUsbMapping();
     }
