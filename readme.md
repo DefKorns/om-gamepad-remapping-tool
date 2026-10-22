@@ -68,6 +68,14 @@ cd om-gamepad-remapping-tool
 
 Releases are built by GitHub Actions through [hmod-build](https://github.com/DefKorns/hmod-build) on every `v*` tag.
 
+## Contributing
+
+Bug reports and ideas are welcome in the [issues](https://github.com/DefKorns/om-gamepad-remapping-tool/issues), and so are pull requests:
+
+- **Formatting:** [`.editorconfig`](.editorconfig) sets it: UTF-8, LF line endings, a final newline, no trailing whitespace, 4 spaces for C/C++, 2 for shell scripts, tabs only in the Makefile.
+- **Only change what you need:** don't reformat, re-indent or strip whitespace in lines you aren't changing. The **Style** check on pull requests looks only at the lines you add.
+- Everything else follows the Options Menu's [code style](https://github.com/DefKorns/OptionsMenu#code-style).
+
 ## Credits
 
 - [DefKorns](https://github.com/DefKorns)
