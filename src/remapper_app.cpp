@@ -110,6 +110,8 @@ RemapperApp::RemapperApp(std::string optionsLocation)
     , saved_(LoadActiveMapping(ActiveDbPath))
     , mapping_(saved_)
 {
+    // the mapping is read before SDL starts, and sdlContext_ is declared before saved_
+    // cppcheck-suppress useInitializationList
     sdlContext_ = std::make_unique<SDL_Context>(std::chrono::milliseconds(33), false);
     renderer_ = sdlContext_->renderer;
     controller_ = std::make_unique<Controller>(1);
