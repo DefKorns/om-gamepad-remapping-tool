@@ -17,6 +17,7 @@
 #include "framework/badge.h"
 #include "framework/controller.h"
 #include "framework/dialog.h"
+#include "framework/list_screen.h"
 #include "framework/sdl_helper.h"
 
 #include <memory>
@@ -71,6 +72,7 @@ private:
     void ScrollTo(int row);
 
     void DrawChrome();
+    int VisibleRows(int top) const;
     void DrawRows();
     void DrawCapturePanel();
 
@@ -94,15 +96,14 @@ private:
     Mode mode_ = Mode::Browse;
     int selected_ = 0;
     int topRow_ = 0;
-    int visibleRows_ = 1;
-    int rowPitch_ = 0;
     int captureTarget_ = -1;
     size_t wizardStep_ = 0;
     Uint32 captureStartedAt_ = 0;
     Uint32 noticeUntil_ = 0;
 
-    Texture scrollUp_, scrollDown_;
-    Texture gearIcon_, appTitleText_, appVersionText_, sectionTitle_, creditText_, noticeText_, lastCapture_;
+    std::unique_ptr<ScreenChrome> chrome_;
+    std::unique_ptr<ScrollArrows> scrollArrows_;
+    Texture noticeText_, lastCapture_;
     std::vector<Texture> sharedNotice_;
     std::unique_ptr<BadgePainter> badges_;
     std::unique_ptr<ConfirmDialog> exitDialog_;
